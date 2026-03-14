@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription au cours</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/validation.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Inscription au cours</h2>
+
+<form name="formInscription"
+      action="/inscription"
+      method="POST"
+      onsubmit="return validerFormulaire()">
+
+    <!-- Nombre d'enfants -->
+    <label>Nombre d'enfants à inscrire</label>
+    <select id="nb_enfants" onchange="genererFormulaires()">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+    </select>
+
+    <!-- Champ caché pour Flask -->
+    <input type="hidden" name="nb_enfants" id="nb_enfants_hidden">
+
+    <!-- Zone où les formulaires enfants seront générés -->
+    <div id="formulaires_enfants"></div>
+
+    <!-- Informations du tuteur -->
+    <h3>Informations du tuteur</h3>
+    <input type="text" name="nom_tuteur" placeholder="Nom du tuteur" required>
+    <input type="text" name="prenom_tuteur" placeholder="Prénom du tuteur" required>
+
+    <!-- CAPTCHA -->
+    <div class="g-recaptcha" data-sitekey="CLE_SITE"></div>
+
+    <button type="submit">S'inscrire</button>
+
+</form>
+
+</div>
+
+<script>
+    // Appel au chargement de la page
+    window.onload = genererFormulaires;
+</script>
+
+</body>
+</html>
