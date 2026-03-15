@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, send_file, redirect, url_for, session
 import sqlite3
+import os
 import smtplib
 from email.mime.text import MIMEText
-import pandas as pd
+import csv
+
+with open("data.csv") as f:
+    data = list(csv.DictReader(f))
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -87,14 +91,20 @@ def dashboard():
 # -----------------------------
 # Fonction envoi email
 # -----------------------------
-def envoyer_email(email, nom):
-    message = MIMEText(f"Bonjour {nom}, votre inscription est confirmée.")
-    message["Subject"] = "Confirmation inscription"
+def envoyer_email(email, nom_enfant, nom_tuteur):
+    message = MIMEText(
+        f"Bonjour {nom_tuteur},\n\n"
+        f"L'inscription de {nom_enfant} est confirmée.\n\n"
+        "Merci."
+    )
+    message["Subject"] = "Confirmation d'inscription"
     message["From"] = "ton_email@gmail.com"
     message["To"] = email
 
+    mot_de_passe = os.environ.get("EMAIL_PASSWORD")
+
     serveur = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-    serveur.login("ton_email@gmail.com", "mot_de_passe")
+    serveur.login("ton_email@gmail.com", mot_de_passe)
     serveur.send_message(message)
     serveur.quit()
 
