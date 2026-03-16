@@ -122,42 +122,49 @@ import csv
 
 @app.route('/inscription', methods=['POST'])
 def inscription():
+    # Infos tuteur
     nom_tuteur = request.form['nom_tuteur']
     prenom_tuteur = request.form['prenom_tuteur']
-    email_tuteur = request.form['email']
-    nb_enfants = int(request.form["nb_enfants"])
+    email_tuteur = request.form['email_tuteur']   # correspond à ton HTML
+    tel_tuteur = request.form['tel_tuteur']
 
+    nb_enfants = int(request.form.get("nb_enfants", 0))
+
+    # Connexion à la base SQLite
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
 
     for i in range(1, nb_enfants + 1):
-        nom = request.form[f"nom_{i}"]
-        prenom = request.form[f"prenom_{i}"]
-        cours = request.form[f"cours_{i}"]
+        # Récupération des infos enfants
+        nom_enfant = request.form.get(f"nom_enfant_{i}", "")
+        prenom_enfant = request.form.get(f"prenom_enfant_{i}", "")
+        allergies = request.form.get(f"allergies_enfant_{i}", "")
 
-        # Insertion SQLite
+        # Insertion dans SQLite
         cursor.execute(
             "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email, cours) VALUES (?, ?, ?, ?, ?, ?)",
-            (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours)
+            (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
         )
 
-        # Écriture CSV
+        # Écriture dans data.csv
         with open("data.csv", "a", newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=["nom_tuteur","prenom_tuteur","email_tuteur","nom","prenom","cours"])
-            # Écrire l'en-tête si fichier vide
-            if f.tell() == 0:
+            fieldnames = ["nom_tuteur", "prenom_tuteur", "email_tuteur", "tel_tuteur",
+                          "nom_enfant", "prenom_enfant", "allergies"]
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            if f.tell() == 0:  # écrire l'en-tête si fichier vide
                 writer.writeheader()
             writer.writerow({
                 "nom_tuteur": nom_tuteur,
                 "prenom_tuteur": prenom_tuteur,
                 "email_tuteur": email_tuteur,
-                "nom": nom,
-                "prenom": prenom,
-                "cours": cours
+                "tel_tuteur": tel_tuteur,
+                "nom_enfant": nom_enfant,
+                "prenom_enfant": prenom_enfant,
+                "allergies": allergies
             })
 
-        # Envoi email confirmation
-        envoyer_email(email_tuteur, nom_tuteur, nom)
+        # Envoi email de confirmation
+        envoyer_email(email_tuteur, nom_enfant, nom_tuteur)
 
     conn.commit()
     conn.close()
