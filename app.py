@@ -122,36 +122,33 @@ import csv
 
 @app.route('/inscription', methods=['POST'])
 def inscription():
-    # Infos tuteur
     nom_tuteur = request.form['nom_tuteur']
     prenom_tuteur = request.form['prenom_tuteur']
-    email_tuteur = request.form['email_tuteur']   # correspond à ton HTML
+    email_tuteur = request.form['email_tuteur']
     tel_tuteur = request.form['tel_tuteur']
 
     nb_enfants = int(request.form.get("nb_enfants", 0))
 
-    # Connexion à la base SQLite
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
 
     for i in range(1, nb_enfants + 1):
-        # Récupération des infos enfants
         nom_enfant = request.form.get(f"nom_enfant_{i}", "")
         prenom_enfant = request.form.get(f"prenom_enfant_{i}", "")
         allergies = request.form.get(f"allergies_enfant_{i}", "")
 
-        # Insertion dans SQLite
+        # Pour SQLite, la colonne 'cours' on peut mettre les allergies ou laisser vide
         cursor.execute(
             "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email, cours) VALUES (?, ?, ?, ?, ?, ?)",
             (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
         )
 
-        # Écriture dans data.csv
+        # CSV avec tous les champs
         with open("data.csv", "a", newline='', encoding='utf-8') as f:
             fieldnames = ["nom_tuteur", "prenom_tuteur", "email_tuteur", "tel_tuteur",
                           "nom_enfant", "prenom_enfant", "allergies"]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
-            if f.tell() == 0:  # écrire l'en-tête si fichier vide
+            if f.tell() == 0:
                 writer.writeheader()
             writer.writerow({
                 "nom_tuteur": nom_tuteur,
@@ -163,8 +160,8 @@ def inscription():
                 "allergies": allergies
             })
 
-        # Envoi email de confirmation
-        envoyer_email(email_tuteur, nom_enfant, nom_tuteur)
+        # Appel envoyer_email avec les 2 paramètres que tu utilisais
+        envoyer_email(email_tuteur, nom_enfant)
 
     conn.commit()
     conn.close()
