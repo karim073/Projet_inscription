@@ -118,6 +118,8 @@ def formulaire():
 # -----------------------------
 # Traitement inscription
 # -----------------------------
+import csv
+
 @app.route('/inscription', methods=['POST'])
 def inscription():
     nom_tuteur = request.form['nom_tuteur']
@@ -127,6 +129,40 @@ def inscription():
 
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
+
+    for i in range(1, nb_enfants + 1):
+        nom = request.form[f"nom_{i}"]
+        prenom = request.form[f"prenom_{i}"]
+        cours = request.form[f"cours_{i}"]
+
+        # Insertion SQLite
+        cursor.execute(
+            "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email, cours) VALUES (?, ?, ?, ?, ?, ?)",
+            (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours)
+        )
+
+        # Écriture CSV
+        with open("data.csv", "a", newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=["nom_tuteur","prenom_tuteur","email_tuteur","nom","prenom","cours"])
+            # Écrire l'en-tête si fichier vide
+            if f.tell() == 0:
+                writer.writeheader()
+            writer.writerow({
+                "nom_tuteur": nom_tuteur,
+                "prenom_tuteur": prenom_tuteur,
+                "email_tuteur": email_tuteur,
+                "nom": nom,
+                "prenom": prenom,
+                "cours": cours
+            })
+
+        # Envoi email confirmation
+        envoyer_email(email_tuteur, nom_tuteur, nom)
+
+    conn.commit()
+    conn.close()
+
+    return render_template("confirmation.html", nom_tuteur=nom_tuteur)
 
     # Boucle sur les enfants
     for i in range(1, nb_enfants + 1):
