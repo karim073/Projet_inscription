@@ -37,22 +37,27 @@
         <div id="formulaires_enfants"></div>
 
         <!-- Informations du tuteur -->
-        <h3>Informations du tuteur</h3>
+<h3>Informations du tuteur</h3>
 
-        <div class="form-group">
-            <label for="nom_tuteur">Nom du tuteur</label>
-            <input type="text" class="form-control" id="nom_tuteur" name="nom_tuteur" placeholder="Nom du tuteur" required>
-        </div>
+<div class="form-group">
+    <label for="nom_tuteur">Nom du tuteur</label>
+    <input type="text" class="form-control" id="nom_tuteur" name="nom_tuteur" placeholder="Nom du tuteur" required>
+</div>
 
-        <div class="form-group">
-            <label for="prenom_tuteur">Prénom du tuteur</label>
-            <input type="text" class="form-control" id="prenom_tuteur" name="prenom_tuteur" placeholder="Prénom du tuteur" required>
-        </div>
+<div class="form-group">
+    <label for="prenom_tuteur">Prénom du tuteur</label>
+    <input type="text" class="form-control" id="prenom_tuteur" name="prenom_tuteur" placeholder="Prénom du tuteur" required>
+</div>
 
-        <div class="form-group">
-            <label for="email_tuteur">Email du tuteur</label>
-            <input type="email" class="form-control" id="email_tuteur" name="email" placeholder="Email du tuteur" required>
-        </div>
+<div class="form-group">
+    <label for="email_tuteur">Email du tuteur</label>
+    <input type="email" class="form-control" id="email_tuteur" name="email_tuteur" placeholder="Email du tuteur" required>
+</div>
+
+<div class="form-group">
+    <label for="tel_tuteur">Numéro de téléphone</label>
+    <input type="tel" class="form-control" id="tel_tuteur" name="tel_tuteur" placeholder="Ex: 0612345678" required pattern="[0-9]{10}">
+</div>
 
         <!-- reCAPTCHA -->
         <div class="g-recaptcha" data-sitekey="6LfogYssAAAAAMDZ3P-gTksNrWWvK6NRz7ytxjh9"></div>
@@ -71,26 +76,39 @@
 
     // Exemple de fonction genererFormulaires() minimale pour que cela fonctionne
     function genererFormulaires() {
-        const nb = document.getElementById('nb_enfants').value;
-        const container = document.getElementById('formulaires_enfants');
-        const hiddenInput = document.getElementById('nb_enfants_hidden');
-        hiddenInput.value = nb;
+    const nb = parseInt(document.getElementById("nb_enfants").value);
+    const container = document.getElementById("formulaires_enfants");
+    const hiddenField = document.getElementById("nb_enfants_hidden");
+    
+    // Met à jour le champ caché pour Flask
+    hiddenField.value = nb;
+    
+    // Vide la zone avant de recréer les formulaires
+    container.innerHTML = "";
 
-        container.innerHTML = ''; // vider le contenu précédent
+    for (let i = 1; i <= nb; i++) {
+        const div = document.createElement("div");
+        div.classList.add("form-group");
+        div.style.marginBottom = "15px";
 
-        for (let i = 1; i <= nb; i++) {
-            const div = document.createElement('div');
-            div.className = 'form-group';
-            div.innerHTML = `
-                <h4>Enfant ${i}</h4>
-                <label>Nom</label>
-                <input type="text" name="nom_enfant_${i}" required>
-                <label>Prénom</label>
-                <input type="text" name="prenom_enfant_${i}" required>
-                <label>Âge</label>
-                <input type="number" name="age_enfant_${i}" min="1" required>
-            `;
-            container.appendChild(div);
+        div.innerHTML = `
+            <h4>Enfant ${i}</h4>
+            <label for="nom_enfant_${i}">Nom de l'enfant</label>
+            <input type="text" class="form-control" id="nom_enfant_${i}" name="nom_enfant_${i}" placeholder="Nom de l'enfant" required>
+            
+            <label for="prenom_enfant_${i}">Prénom de l'enfant</label>
+            <input type="text" class="form-control" id="prenom_enfant_${i}" name="prenom_enfant_${i}" placeholder="Prénom de l'enfant" required>
+            
+            <label for="allergies_enfant_${i}">Allergies éventuelles</label>
+            <input type="text" class="form-control" id="allergies_enfant_${i}" name="allergies_enfant_${i}" placeholder="Liste des allergies">
+        `;
+
+        container.appendChild(div);
+    }
+}
+
+// Générer le formulaire initial au chargement
+window.onload = genererFormulaires;
         }
     }
 </script>
