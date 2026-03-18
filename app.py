@@ -21,9 +21,7 @@ admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD", "1234")
 # Initialisation base de données
 # -----------------------------
 def init_db():
-     # Supprime le fichier db pour forcer la recréation
-    if os.path.exists("inscriptions.db"):
-        os.remove("inscriptions.db")
+    
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
 
