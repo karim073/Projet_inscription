@@ -21,7 +21,11 @@ admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD", "1234")
 # Initialisation base de données
 # -----------------------------
 def init_db():
-    
+    # ⚠️ Supprime l'ancienne base pour forcer la recréation avec le bon schéma
+    # ⚠️ Retirez les 2 lignes suivantes après le premier déploiement réussi
+    if os.path.exists("inscriptions.db"):
+        os.remove("inscriptions.db")
+
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
 
@@ -117,24 +121,21 @@ def envoyer_csv_admin():
     api_key = os.environ.get("MAILGUN_API_KEY")
     domain = os.environ.get("MAILGUN_DOMAIN")
     email_from = os.environ.get("EMAIL_FROM")
-    email_admin = os.environ.get("EMAIL_ADMIN")  # votre adresse pour recevoir le CSV
+    email_admin = os.environ.get("EMAIL_ADMIN")
 
     try:
-        # Lire toutes les inscriptions depuis SQLite
         conn = sqlite3.connect("inscriptions.db")
         cursor = conn.cursor()
         cursor.execute("SELECT nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours FROM inscriptions")
         rows = cursor.fetchall()
         conn.close()
 
-        # Créer le CSV en mémoire
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(["nom", "prenom", "nom_tuteur", "prenom_tuteur", "email_tuteur", "allergies"])
         writer.writerows(rows)
         csv_content = output.getvalue().encode("utf-8")
 
-        # Envoyer par email avec pièce jointe
         response = requests.post(
             f"https://api.mailgun.net/v3/{domain}/messages",
             auth=("api", api_key),
@@ -182,13 +183,11 @@ def inscription():
             (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
         )
 
-        # Email de confirmation au tuteur
         envoyer_email_tuteur(email_tuteur, nom_enfant, nom_tuteur)
 
     conn.commit()
     conn.close()
 
-    # ✅ Envoyer le CSV complet à l'admin après chaque inscription
     envoyer_csv_admin()
 
     return render_template("confirmation.html", nom_tuteur=nom_tuteur)
