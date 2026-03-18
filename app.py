@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, send_file, redirect, url_for,
 import sqlite3
 import os
 import csv
+import io
 import requests
 import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -22,9 +23,6 @@ admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD", "1234")
 def init_db():
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
-
-    # ⚠️ Retirez les 2 lignes suivantes après le premier déploiement réussi
-    cursor.execute("DROP TABLE IF EXISTS inscriptions")
 
     cursor.execute("""
 CREATE TABLE IF NOT EXISTS inscriptions (
@@ -84,9 +82,9 @@ def dashboard():
     return render_template("dashboard.html", total=total, stats=stats, data=data)
 
 # -----------------------------
-# Fonction envoi email via Mailgun
+# Confirmation email au tuteur
 # -----------------------------
-def envoyer_email(email, nom_enfant, nom_tuteur):
+def envoyer_email_tuteur(email, nom_enfant, nom_tuteur):
     api_key = os.environ.get("MAILGUN_API_KEY")
     domain = os.environ.get("MAILGUN_DOMAIN")
     email_from = os.environ.get("EMAIL_FROM")
@@ -107,9 +105,50 @@ def envoyer_email(email, nom_enfant, nom_tuteur):
             },
             timeout=10
         )
-        print(f"Email envoyé : {response.status_code} - {response.text}")
+        print(f"Email tuteur envoyé : {response.status_code}")
     except Exception as e:
-        print(f"Erreur envoi email : {e}")
+        print(f"Erreur email tuteur : {e}")
+
+# -----------------------------
+# Envoi CSV complet à l'admin
+# -----------------------------
+def envoyer_csv_admin():
+    api_key = os.environ.get("MAILGUN_API_KEY")
+    domain = os.environ.get("MAILGUN_DOMAIN")
+    email_from = os.environ.get("EMAIL_FROM")
+    email_admin = os.environ.get("EMAIL_ADMIN")  # votre adresse pour recevoir le CSV
+
+    try:
+        # Lire toutes les inscriptions depuis SQLite
+        conn = sqlite3.connect("inscriptions.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours FROM inscriptions")
+        rows = cursor.fetchall()
+        conn.close()
+
+        # Créer le CSV en mémoire
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["nom", "prenom", "nom_tuteur", "prenom_tuteur", "email_tuteur", "allergies"])
+        writer.writerows(rows)
+        csv_content = output.getvalue().encode("utf-8")
+
+        # Envoyer par email avec pièce jointe
+        response = requests.post(
+            f"https://api.mailgun.net/v3/{domain}/messages",
+            auth=("api", api_key),
+            files=[("attachment", ("inscriptions.csv", csv_content, "text/csv"))],
+            data={
+                "from": email_from,
+                "to": email_admin,
+                "subject": "Nouvelle inscription — liste complète",
+                "text": "Veuillez trouver en pièce jointe la liste complète des inscriptions."
+            },
+            timeout=10
+        )
+        print(f"CSV admin envoyé : {response.status_code}")
+    except Exception as e:
+        print(f"Erreur envoi CSV admin : {e}")
 
 # -----------------------------
 # Page formulaire
@@ -142,27 +181,14 @@ def inscription():
             (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
         )
 
-        fichier_existe = os.path.exists("data.csv") and os.path.getsize("data.csv") > 0
-        with open("data.csv", "a", newline='', encoding='utf-8') as f:
-            fieldnames = ["nom_tuteur", "prenom_tuteur", "email_tuteur", "tel_tuteur",
-                          "nom_enfant", "prenom_enfant", "allergies"]
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            if not fichier_existe:
-                writer.writeheader()
-            writer.writerow({
-                "nom_tuteur": nom_tuteur,
-                "prenom_tuteur": prenom_tuteur,
-                "email_tuteur": email_tuteur,
-                "tel_tuteur": tel_tuteur,
-                "nom_enfant": nom_enfant,
-                "prenom_enfant": prenom_enfant,
-                "allergies": allergies
-            })
-
-        envoyer_email(email_tuteur, nom_enfant, nom_tuteur)
+        # Email de confirmation au tuteur
+        envoyer_email_tuteur(email_tuteur, nom_enfant, nom_tuteur)
 
     conn.commit()
     conn.close()
+
+    # ✅ Envoyer le CSV complet à l'admin après chaque inscription
+    envoyer_csv_admin()
 
     return render_template("confirmation.html", nom_tuteur=nom_tuteur)
 
