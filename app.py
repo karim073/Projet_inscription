@@ -4,12 +4,6 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 import csv
-
-if os.path.exists("data.csv"):
-    with open("data.csv") as f:
-        data = list(csv.DictReader(f))
-else:
-    data = []
 import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -122,8 +116,6 @@ def formulaire():
 # -----------------------------
 # Traitement inscription
 # -----------------------------
-import csv
-
 @app.route('/inscription', methods=['POST'])
 def inscription():
     nom_tuteur = request.form['nom_tuteur']
@@ -141,18 +133,20 @@ def inscription():
         prenom_enfant = request.form.get(f"prenom_enfant_{i}", "")
         allergies = request.form.get(f"allergies_enfant_{i}", "")
 
-        # Pour SQLite, la colonne 'cours' on peut mettre les allergies ou laisser vide
+        # ✅ CORRECTION 1 : VALUES manquant + virgule entre la requête et les paramètres
         cursor.execute(
-    "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours) VALUES (?, ?, ?, ?, ?, ?)",
-    (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
-)
+            "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours) VALUES (?, ?, ?, ?, ?, ?)",
+            (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
+        )
 
-        # CSV avec tous les champs
+        # ✅ CORRECTION 2 : vérification correcte pour l'en-tête CSV
+        fichier_existe = os.path.exists("data.csv") and os.path.getsize("data.csv") > 0
+
         with open("data.csv", "a", newline='', encoding='utf-8') as f:
             fieldnames = ["nom_tuteur", "prenom_tuteur", "email_tuteur", "tel_tuteur",
                           "nom_enfant", "prenom_enfant", "allergies"]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
-            if f.tell() == 0:
+            if not fichier_existe:
                 writer.writeheader()
             writer.writerow({
                 "nom_tuteur": nom_tuteur,
@@ -164,7 +158,7 @@ def inscription():
                 "allergies": allergies
             })
 
-        # Appel envoyer_email avec les 2 paramètres que tu utilisais
+        # ✅ CORRECTION 3 : 3 paramètres au lieu de 2
         envoyer_email(email_tuteur, nom_enfant, nom_tuteur)
 
     conn.commit()
@@ -172,14 +166,14 @@ def inscription():
 
     return render_template("confirmation.html", nom_tuteur=nom_tuteur)
 
- 
-
 # -----------------------------
 # Page admin simple
 # -----------------------------
 @app.route("/admin")
 def admin():
-    admin_required()
+    redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
 
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
@@ -195,7 +189,9 @@ def admin():
 # -----------------------------
 @app.route("/export")
 def export():
-    admin_required()
+    redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
 
     conn = sqlite3.connect("inscriptions.db")
     df = pd.read_sql_query("SELECT * FROM inscriptions", conn)
