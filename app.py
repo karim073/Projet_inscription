@@ -96,13 +96,13 @@ def envoyer_email(email, nom_enfant, nom_tuteur):
         "Merci."
     )
     message["Subject"] = "Confirmation d'inscription"
-    message["From"] = "ton_email@gmail.com"
+    message["From"] = "jaddanih@gmail.com"
     message["To"] = email
 
     mot_de_passe = os.environ.get("EMAIL_PASSWORD")
 
     serveur = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-    serveur.login("ton_email@gmail.com", mot_de_passe)
+    serveur.login("jaddanih@gmail.com", mot_de_passe)
     serveur.send_message(message)
     serveur.quit()
 
