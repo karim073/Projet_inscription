@@ -6,6 +6,8 @@ from email.mime.text import MIMEText
 import csv
 import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
+load_dotenv()  # ← charge automatiquement le fichier .env
 
 app = Flask(__name__)
 app.secret_key = "SECRET123"  # nécessaire pour session
@@ -96,7 +98,7 @@ def envoyer_email(email, nom_enfant, nom_tuteur):
         "Merci."
     )
     message["Subject"] = "Confirmation d'inscription"
-    message["From"] = "jaddanih@gmail.com"
+    message["From"] = "EMAIL_FROM"
     message["To"] = email
 
     mot_de_passe = os.environ.get("EMAIL_PASSWORD")
