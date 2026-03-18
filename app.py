@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, send_file, redirect, url_for,
 import sqlite3
 import os
 import csv
+import requests
 import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
@@ -19,9 +20,11 @@ admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD", "1234")
 # Initialisation base de données
 # -----------------------------
 def init_db():
-    
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
+
+    # ⚠️ Retirez les 2 lignes suivantes après le premier déploiement réussi
+    cursor.execute("DROP TABLE IF EXISTS inscriptions")
 
     cursor.execute("""
 CREATE TABLE IF NOT EXISTS inscriptions (
@@ -36,6 +39,7 @@ CREATE TABLE IF NOT EXISTS inscriptions (
 """)
     conn.commit()
     conn.close()
+
 init_db()
 
 # -----------------------------
@@ -80,10 +84,8 @@ def dashboard():
     return render_template("dashboard.html", total=total, stats=stats, data=data)
 
 # -----------------------------
-# Fonction envoi email
+# Fonction envoi email via Mailgun
 # -----------------------------
-import requests
-
 def envoyer_email(email, nom_enfant, nom_tuteur):
     api_key = os.environ.get("MAILGUN_API_KEY")
     domain = os.environ.get("MAILGUN_DOMAIN")
@@ -102,9 +104,10 @@ def envoyer_email(email, nom_enfant, nom_tuteur):
                     f"L'inscription de {nom_enfant} est confirmée.\n\n"
                     "Merci."
                 )
-            }
+            },
+            timeout=10
         )
-        print(f"Email envoyé : {response.status_code}")
+        print(f"Email envoyé : {response.status_code} - {response.text}")
     except Exception as e:
         print(f"Erreur envoi email : {e}")
 
