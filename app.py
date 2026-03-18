@@ -8,7 +8,7 @@ import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 load_dotenv()  # ← charge automatiquement le fichier .env
-
+from flask import Flask, render_template, request, send_file, redirect, url_for, session
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")  # nécessaire pour session
 
@@ -123,7 +123,7 @@ def inscription():
     nom_tuteur = request.form['nom_tuteur']
     prenom_tuteur = request.form['prenom_tuteur']
     email_tuteur = request.form['email_tuteur']
-    tel_tuteur = request.form['tel_tuteur'] from flask import Flask, render_template, request, send_file, redirect, url_for, session
+    tel_tuteur = request.form['tel_tuteur']
 import sqlite3
 import os
 import smtplib
