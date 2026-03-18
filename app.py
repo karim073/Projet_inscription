@@ -1,8 +1,6 @@
 from flask import Flask, render_template, request, send_file, redirect, url_for, session
 import sqlite3
 import os
-import smtplib
-from email.mime.text import MIMEText
 import csv
 import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -84,24 +82,29 @@ def dashboard():
 # -----------------------------
 # Fonction envoi email
 # -----------------------------
-def envoyer_email(email, nom_enfant, nom_tuteur):
-    email_from = os.environ.get("EMAIL_FROM")
-    mot_de_passe = os.environ.get("EMAIL_PASSWORD")
+import requests
 
-    message = MIMEText(
-        f"Bonjour {nom_tuteur},\n\n"
-        f"L'inscription de {nom_enfant} est confirmée.\n\n"
-        "Merci."
-    )
-    message["Subject"] = "Confirmation d'inscription"
-    message["From"] = email_from
-    message["To"] = email
+def envoyer_email(email, nom_enfant, nom_tuteur):
+    api_key = os.environ.get("MAILGUN_API_KEY")
+    domain = os.environ.get("MAILGUN_DOMAIN")
+    email_from = os.environ.get("EMAIL_FROM")
 
     try:
-        serveur = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-        serveur.login(email_from, mot_de_passe)
-        serveur.send_message(message)
-        serveur.quit()
+        response = requests.post(
+            f"https://api.mailgun.net/v3/{domain}/messages",
+            auth=("api", api_key),
+            data={
+                "from": email_from,
+                "to": email,
+                "subject": "Confirmation d'inscription",
+                "text": (
+                    f"Bonjour {nom_tuteur},\n\n"
+                    f"L'inscription de {nom_enfant} est confirmée.\n\n"
+                    "Merci."
+                )
+            }
+        )
+        print(f"Email envoyé : {response.status_code}")
     except Exception as e:
         print(f"Erreur envoi email : {e}")
 
