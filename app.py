@@ -10,6 +10,7 @@ if os.path.exists("data.csv"):
         data = list(csv.DictReader(f))
 else:
     data = []
+import pandas as pd
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -142,9 +143,9 @@ def inscription():
 
         # Pour SQLite, la colonne 'cours' on peut mettre les allergies ou laisser vide
         cursor.execute(
-            "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours)"
-            (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
-        )
+    "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours) VALUES (?, ?, ?, ?, ?, ?)",
+    (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
+)
 
         # CSV avec tous les champs
         with open("data.csv", "a", newline='', encoding='utf-8') as f:
