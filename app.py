@@ -21,11 +21,9 @@ admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD", "1234")
 # Initialisation base de données
 # -----------------------------
 def init_db():
+    
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
-
-    # ⚠️ Retirez les 2 lignes suivantes après le premier déploiement réussi
-    cursor.execute("DROP TABLE IF EXISTS inscriptions")
 
     cursor.execute("""
 CREATE TABLE IF NOT EXISTS inscriptions (
@@ -40,7 +38,6 @@ CREATE TABLE IF NOT EXISTS inscriptions (
 """)
     conn.commit()
     conn.close()
-
 init_db()
 
 # -----------------------------
