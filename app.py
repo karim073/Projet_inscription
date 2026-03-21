@@ -11,11 +11,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "SECRET123")
+app.secret_key = os.environ.get("SECRET_KEY")
+RECAPTCHA_SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # Admin sécurisé
 admin_user = "admin"
-admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD", "1234"))
+admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD"))
 
 # -----------------------------
 # Initialisation base de données
@@ -164,6 +165,17 @@ def formulaire():
 # -----------------------------
 @app.route('/inscription', methods=['POST'])
 def inscription():
+
+    # ✅ Vérification reCAPTCHA
+    token = request.form.get('g-recaptcha-response')
+    r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
+        'secret': RECAPTCHA_SECRET_KEY,
+        'response': token
+    })
+    result = r.json()
+    if not result.get('success'):
+        return "reCAPTCHA invalide. Veuillez réessayer.", 400
+
     nom_tuteur = request.form['nom_tuteur']
     prenom_tuteur = request.form['prenom_tuteur']
     email_tuteur = request.form['email_tuteur']
