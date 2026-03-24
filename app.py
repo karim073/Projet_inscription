@@ -20,7 +20,12 @@ RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY")
 admin_user = "admin"
 admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD"))
 
-# -----------------------------
+# -----@app.route("/reset-db")
+def reset_db():
+    if os.path.exists("inscriptions.db"):
+        os.remove("inscriptions.db")
+    init_db()
+    return "Base de données recréée avec succès ✅"
 # Initialisation base de données
 # -----------------------------
 def init_db():
