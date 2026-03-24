@@ -12,6 +12,8 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
+
+# ✅ CORRECTION #1 — clé reCAPTCHA séparée
 RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY")
 
 # Admin sécurisé
@@ -22,9 +24,7 @@ admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD"))
 # Initialisation base de données
 # -----------------------------
 def init_db():
-    # ⚠️ Supprime l'ancienne base pour forcer la recréation avec le bon schéma
-    # ⚠️ Retirez les 2 lignes suivantes après le premier déploiement réussi
-    
+    # ✅ CORRECTION #2 — suppression des lignes qui effaçaient la BD à chaque démarrage
 
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
@@ -94,8 +94,10 @@ def envoyer_email_tuteur(email, nom_enfant, nom_tuteur):
     domain = os.environ.get("MAILGUN_DOMAIN")
     email_from = os.environ.get("EMAIL_FROM")
 
-    # ← Ajoutez ceci temporairement pour déboguer
-    print(f"DEBUG api_key={api_key}, domain={domain}, from={email_from}, to={email}")
+    # ✅ Vérification que les variables sont bien chargées
+    if not all([api_key, domain, email_from]):
+        print("❌ ERREUR : Variables Mailgun manquantes dans .env")
+        return
 
     try:
         response = requests.post(
@@ -113,9 +115,11 @@ def envoyer_email_tuteur(email, nom_enfant, nom_tuteur):
             },
             timeout=10
         )
-        print(f"Email tuteur envoyé : {response.status_code}")
+        print(f"✅ Email tuteur envoyé à {email} : statut {response.status_code}")
+        if response.status_code != 200:
+            print(f"   Détail Mailgun : {response.text}")
     except Exception as e:
-        print(f"Erreur email tuteur : {e}")
+        print(f"❌ Erreur email tuteur : {e}")
 
 # -----------------------------
 # Envoi CSV complet à l'admin
@@ -125,6 +129,11 @@ def envoyer_csv_admin():
     domain = os.environ.get("MAILGUN_DOMAIN")
     email_from = os.environ.get("EMAIL_FROM")
     email_admin = os.environ.get("EMAIL_ADMIN")
+
+    # ✅ Vérification que les variables sont bien chargées
+    if not all([api_key, domain, email_from, email_admin]):
+        print("❌ ERREUR : Variables Mailgun/admin manquantes dans .env")
+        return
 
     try:
         conn = sqlite3.connect("inscriptions.db")
@@ -151,9 +160,11 @@ def envoyer_csv_admin():
             },
             timeout=10
         )
-        print(f"CSV admin envoyé : {response.status_code}")
+        print(f"✅ CSV admin envoyé à {email_admin} : statut {response.status_code}")
+        if response.status_code != 200:
+            print(f"   Détail Mailgun : {response.text}")
     except Exception as e:
-        print(f"Erreur envoi CSV admin : {e}")
+        print(f"❌ Erreur envoi CSV admin : {e}")
 
 # -----------------------------
 # Page formulaire
@@ -168,13 +179,15 @@ def formulaire():
 @app.route('/inscription', methods=['POST'])
 def inscription():
 
-    # ✅ Vérification reCAPTCHA
+    # ✅ Vérification reCAPTCHA avec la bonne clé
     token = request.form.get('g-recaptcha-response')
     r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
         'secret': RECAPTCHA_SECRET_KEY,
         'response': token
     })
     result = r.json()
+    print(f"reCAPTCHA résultat : {result}")  # ✅ Pour déboguer si besoin
+
     if not result.get('success'):
         return "reCAPTCHA invalide. Veuillez réessayer.", 400
 
