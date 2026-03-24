@@ -11,47 +11,58 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY")
+app.secret_key = os.environ.get("SECRET_KEY", "secret-dev-key")
 
-# ✅ CORRECTION #1 — clé reCAPTCHA séparée
+# -----------------------------
+# CONFIG
+# -----------------------------
 RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY")
 
-# Admin sécurisé
 admin_user = "admin"
-admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD"))
+admin_password_plain = os.environ.get("ADMIN_PASSWORD", "admin123")
+admin_password = generate_password_hash(admin_password_plain)
 
-# -----@app.route("/reset-db")
-def reset_db():
-    if os.path.exists("inscriptions.db"):
-        os.remove("inscriptions.db")
-    init_db()
-    return "Base de données recréée avec succès ✅"
-# Initialisation base de données
+DB_NAME = "inscriptions.db"
+
 # -----------------------------
-def init_db():
-    # ✅ CORRECTION #2 — suppression des lignes qui effaçaient la BD à chaque démarrage
+# DATABASE
+# -----------------------------
+def get_db():
+    return sqlite3.connect(DB_NAME, check_same_thread=False)
 
-    conn = sqlite3.connect("inscriptions.db")
+def init_db():
+    conn = get_db()
     cursor = conn.cursor()
 
     cursor.execute("""
-CREATE TABLE IF NOT EXISTS inscriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nom TEXT,
-    prenom TEXT,
-    nom_tuteur TEXT,
-    prenom_tuteur TEXT,
-    email_tuteur TEXT,
-    cours TEXT
-)
-""")
+    CREATE TABLE IF NOT EXISTS inscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nom TEXT,
+        prenom TEXT,
+        nom_tuteur TEXT,
+        prenom_tuteur TEXT,
+        email_tuteur TEXT,
+        allergies TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
 
 init_db()
 
 # -----------------------------
-# Vérification admin
+# RESET DB (IMPORTANT)
+# -----------------------------
+@app.route("/reset-db")
+def reset_db():
+    if os.path.exists(DB_NAME):
+        os.remove(DB_NAME)
+    init_db()
+    return "Base de données recréée avec succès ✅"
+
+# -----------------------------
+# AUTH ADMIN
 # -----------------------------
 def admin_required():
     if not session.get("admin"):
@@ -59,49 +70,54 @@ def admin_required():
     return None
 
 # -----------------------------
-# Login admin
+# LOGIN
 # -----------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+
         if username == admin_user and check_password_hash(admin_password, password):
             session["admin"] = True
             return redirect(url_for("dashboard"))
+
     return render_template("login.html")
 
 # -----------------------------
-# Dashboard admin
+# DASHBOARD
 # -----------------------------
 @app.route("/dashboard")
 def dashboard():
     if not session.get("admin"):
         return redirect("/login")
 
-    conn = sqlite3.connect("inscriptions.db")
+    conn = get_db()
     cursor = conn.cursor()
+
     cursor.execute("SELECT COUNT(*) FROM inscriptions")
     total = cursor.fetchone()[0]
-    cursor.execute("SELECT cours, COUNT(*) FROM inscriptions GROUP BY cours")
+
+    cursor.execute("SELECT allergies, COUNT(*) FROM inscriptions GROUP BY allergies")
     stats = cursor.fetchall()
+
     cursor.execute("SELECT * FROM inscriptions")
     data = cursor.fetchall()
+
     conn.close()
 
     return render_template("dashboard.html", total=total, stats=stats, data=data)
 
 # -----------------------------
-# Confirmation email au tuteur
+# EMAIL TUTEUR
 # -----------------------------
 def envoyer_email_tuteur(email, nom_enfant, nom_tuteur):
     api_key = os.environ.get("MAILGUN_API_KEY")
     domain = os.environ.get("MAILGUN_DOMAIN")
     email_from = os.environ.get("EMAIL_FROM")
 
-    # ✅ Vérification que les variables sont bien chargées
     if not all([api_key, domain, email_from]):
-        print("❌ ERREUR : Variables Mailgun manquantes dans .env")
+        print("❌ Variables Mailgun manquantes")
         return
 
     try:
@@ -112,22 +128,16 @@ def envoyer_email_tuteur(email, nom_enfant, nom_tuteur):
                 "from": email_from,
                 "to": email,
                 "subject": "Confirmation d'inscription",
-                "text": (
-                    f"Bonjour {nom_tuteur},\n\n"
-                    f"L'inscription de {nom_enfant} est confirmée.\n\n"
-                    "Merci."
-                )
+                "text": f"Bonjour {nom_tuteur},\n\nL'inscription de {nom_enfant} est confirmée.\n\nMerci."
             },
             timeout=10
         )
-        print(f"✅ Email tuteur envoyé à {email} : statut {response.status_code}")
-        if response.status_code != 200:
-            print(f"   Détail Mailgun : {response.text}")
+        print(f"Email envoyé : {response.status_code}")
     except Exception as e:
-        print(f"❌ Erreur email tuteur : {e}")
+        print(f"Erreur email : {e}")
 
 # -----------------------------
-# Envoi CSV complet à l'admin
+# EMAIL ADMIN CSV
 # -----------------------------
 def envoyer_csv_admin():
     api_key = os.environ.get("MAILGUN_API_KEY")
@@ -135,15 +145,14 @@ def envoyer_csv_admin():
     email_from = os.environ.get("EMAIL_FROM")
     email_admin = os.environ.get("EMAIL_ADMIN")
 
-    # ✅ Vérification que les variables sont bien chargées
     if not all([api_key, domain, email_from, email_admin]):
-        print("❌ ERREUR : Variables Mailgun/admin manquantes dans .env")
+        print("❌ Variables Mailgun/admin manquantes")
         return
 
     try:
-        conn = sqlite3.connect("inscriptions.db")
+        conn = get_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours FROM inscriptions")
+        cursor.execute("SELECT nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, allergies FROM inscriptions")
         rows = cursor.fetchall()
         conn.close()
 
@@ -151,6 +160,7 @@ def envoyer_csv_admin():
         writer = csv.writer(output)
         writer.writerow(["nom", "prenom", "nom_tuteur", "prenom_tuteur", "email_tuteur", "allergies"])
         writer.writerows(rows)
+
         csv_content = output.getvalue().encode("utf-8")
 
         response = requests.post(
@@ -160,52 +170,46 @@ def envoyer_csv_admin():
             data={
                 "from": email_from,
                 "to": email_admin,
-                "subject": "Nouvelle inscription — liste complète",
-                "text": "Veuillez trouver en pièce jointe la liste complète des inscriptions."
+                "subject": "Liste des inscriptions",
+                "text": "Fichier CSV en pièce jointe."
             },
             timeout=10
         )
-        print(f"✅ CSV admin envoyé à {email_admin} : statut {response.status_code}")
-        if response.status_code != 200:
-            print(f"   Détail Mailgun : {response.text}")
+        print(f"CSV envoyé : {response.status_code}")
     except Exception as e:
-        print(f"❌ Erreur envoi CSV admin : {e}")
+        print(f"Erreur CSV : {e}")
 
 # -----------------------------
-# Page formulaire
+# FORMULAIRE
 # -----------------------------
 @app.route('/')
 def formulaire():
     return render_template("inscription.html")
 
 # -----------------------------
-# Traitement inscription
+# INSCRIPTION
 # -----------------------------
 @app.route('/inscription', methods=['POST'])
 def inscription():
 
-    # ✅ Vérification reCAPTCHA avec la bonne clé
+    # reCAPTCHA
     token = request.form.get('g-recaptcha-response')
-    # ✅ Ajoutez ces 2 lignes pour déboguer
-    print(f"TOKEN reçu : {token}")
-    print(f"RECAPTCHA_SECRET_KEY chargée : {RECAPTCHA_SECRET_KEY}")
-    r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
-        'secret': RECAPTCHA_SECRET_KEY,
-        'response': token
-    })
+
+    r = requests.post(
+        'https://www.google.com/recaptcha/api/siteverify',
+        data={'secret': RECAPTCHA_SECRET_KEY, 'response': token}
+    )
     result = r.json()
-    print(f"reCAPTCHA résultat : {result}")  # ✅ Pour déboguer si besoin
 
     if not result.get('success'):
-        return "reCAPTCHA invalide. Veuillez réessayer.", 400
+        return "reCAPTCHA invalide", 400
 
     nom_tuteur = request.form['nom_tuteur']
     prenom_tuteur = request.form['prenom_tuteur']
     email_tuteur = request.form['email_tuteur']
-    tel_tuteur = request.form['tel_tuteur']
     nb_enfants = int(request.form.get("nb_enfants", 0))
 
-    conn = sqlite3.connect("inscriptions.db")
+    conn = get_db()
     cursor = conn.cursor()
 
     for i in range(1, nb_enfants + 1):
@@ -214,7 +218,7 @@ def inscription():
         allergies = request.form.get(f"allergies_enfant_{i}", "")
 
         cursor.execute(
-            "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, cours) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, allergies) VALUES (?, ?, ?, ?, ?, ?)",
             (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
         )
 
@@ -228,7 +232,7 @@ def inscription():
     return render_template("confirmation.html", nom_tuteur=nom_tuteur)
 
 # -----------------------------
-# Page admin simple
+# ADMIN SIMPLE
 # -----------------------------
 @app.route("/admin")
 def admin():
@@ -236,7 +240,7 @@ def admin():
     if redirect_response:
         return redirect_response
 
-    conn = sqlite3.connect("inscriptions.db")
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM inscriptions")
     data = cursor.fetchall()
@@ -245,7 +249,7 @@ def admin():
     return render_template("admin.html", data=data)
 
 # -----------------------------
-# Export Excel
+# EXPORT EXCEL
 # -----------------------------
 @app.route("/export")
 def export():
@@ -253,16 +257,17 @@ def export():
     if redirect_response:
         return redirect_response
 
-    conn = sqlite3.connect("inscriptions.db")
+    conn = get_db()
     df = pd.read_sql_query("SELECT * FROM inscriptions", conn)
+    conn.close()
+
     fichier = "participants.xlsx"
     df.to_excel(fichier, index=False)
-    conn.close()
 
     return send_file(fichier, as_attachment=True)
 
 # -----------------------------
-# Lancement serveur
+# RUN
 # -----------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
