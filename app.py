@@ -16,7 +16,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "secret-dev-key")
 # -----------------------------
 # CONFIG
 # -----------------------------
-RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY")
+RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", "")
 
 admin_user = "admin"
 admin_password_plain = os.environ.get("ADMIN_PASSWORD", "admin123")
@@ -103,13 +103,12 @@ def dashboard():
     data = cursor.fetchall()
 
     conn.close()
-
     return render_template("dashboard.html", total=total, stats=stats, data=data)
 
 # -----------------------------
 # EMAIL TUTEUR
 # -----------------------------
-def envoyer_email_tuteur(email, nom_enfant, nom_tuteur):
+def envoyer_email_tuteur(email_tuteur, prenom_enfant, nom_tuteur):
     api_key = os.environ.get("MAILGUN_API_KEY")
     domain = os.environ.get("MAILGUN_DOMAIN")
     email_from = os.environ.get("EMAIL_FROM")
@@ -124,9 +123,9 @@ def envoyer_email_tuteur(email, nom_enfant, nom_tuteur):
             auth=("api", api_key),
             data={
                 "from": email_from,
-                "to": email,
+                "to": email_tuteur,
                 "subject": "Confirmation d'inscription",
-                "text": f"Bonjour {nom_tuteur},\n\nL'inscription de {nom_enfant} est confirmée.\n\nMerci."
+                "text": f"Bonjour {nom_tuteur},\n\nL'inscription de {prenom_enfant} est confirmée.\n\nMerci."
             },
             timeout=10
         )
@@ -188,7 +187,6 @@ def formulaire():
 # -----------------------------
 @app.route('/inscription', methods=['POST'])
 def inscription():
-
     # reCAPTCHA
     token = request.form.get('g-recaptcha-response')
     r = requests.post(
@@ -223,11 +221,13 @@ def inscription():
             return f"Erreur interne : {e}", 500
 
         # Email pour chaque enfant
-        envoyer_email_tuteur(email_tuteur, nom_enfant, nom_tuteur)
+        envoyer_email_tuteur(email_tuteur, prenom_enfant, nom_tuteur)
 
+    # Commit et fermer la connexion une seule fois après la boucle
     conn.commit()
     conn.close()
 
+    # Envoyer CSV admin après la boucle
     envoyer_csv_admin()
 
     return render_template("confirmation.html", nom_tuteur=nom_tuteur)
@@ -246,7 +246,6 @@ def admin():
     cursor.execute("SELECT * FROM inscriptions")
     data = cursor.fetchall()
     conn.close()
-
     return render_template("admin.html", data=data)
 
 # -----------------------------
