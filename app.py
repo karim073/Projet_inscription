@@ -52,13 +52,35 @@ def init_db():
 init_db()
 
 # -----------------------------
-# RESET DB (IMPORTANT)
+# # RESET DB (IMPORTANT)
 # -----------------------------
+DB_NAME = "inscriptions.db"
+
 @app.route("/reset-db")
 def reset_db():
+    # Supprimer l'ancienne base si elle existe
     if os.path.exists(DB_NAME):
         os.remove(DB_NAME)
-    init_db()
+
+    # Créer une nouvelle base
+    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE inscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nom TEXT,
+        prenom TEXT,
+        nom_tuteur TEXT,
+        prenom_tuteur TEXT,
+        email_tuteur TEXT,
+        allergies TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
     return "Base de données recréée avec succès ✅"
 
 # -----------------------------
