@@ -181,6 +181,9 @@ def inscription():
 
     # ✅ Vérification reCAPTCHA avec la bonne clé
     token = request.form.get('g-recaptcha-response')
+    # ✅ Ajoutez ces 2 lignes pour déboguer
+    print(f"TOKEN reçu : {token}")
+    print(f"RECAPTCHA_SECRET_KEY chargée : {RECAPTCHA_SECRET_KEY}")
     r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
         'secret': RECAPTCHA_SECRET_KEY,
         'response': token
