@@ -33,7 +33,6 @@ def get_db():
 def init_db():
     conn = get_db()
     cursor = conn.cursor()
-
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS inscriptions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,42 +44,19 @@ def init_db():
         allergies TEXT
     )
     """)
-
     conn.commit()
     conn.close()
 
 init_db()
 
 # -----------------------------
-# # RESET DB (IMPORTANT)
+# RESET DB
 # -----------------------------
-DB_NAME = "inscriptions.db"
-
 @app.route("/reset-db")
 def reset_db():
-    # Supprimer l'ancienne base si elle existe
     if os.path.exists(DB_NAME):
         os.remove(DB_NAME)
-
-    # Créer une nouvelle base
-    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
-    cursor = conn.cursor()
-
-    cursor.execute("""
-    CREATE TABLE inscriptions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nom TEXT,
-        prenom TEXT,
-        nom_tuteur TEXT,
-        prenom_tuteur TEXT,
-        email_tuteur TEXT,
-        allergies TEXT
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-
+    init_db()
     return "Base de données recréée avec succès ✅"
 
 # -----------------------------
@@ -182,7 +158,6 @@ def envoyer_csv_admin():
         writer = csv.writer(output)
         writer.writerow(["nom", "prenom", "nom_tuteur", "prenom_tuteur", "email_tuteur", "allergies"])
         writer.writerows(rows)
-
         csv_content = output.getvalue().encode("utf-8")
 
         response = requests.post(
@@ -216,13 +191,11 @@ def inscription():
 
     # reCAPTCHA
     token = request.form.get('g-recaptcha-response')
-
     r = requests.post(
         'https://www.google.com/recaptcha/api/siteverify',
         data={'secret': RECAPTCHA_SECRET_KEY, 'response': token}
     )
     result = r.json()
-
     if not result.get('success'):
         return "reCAPTCHA invalide", 400
 
@@ -239,11 +212,17 @@ def inscription():
         prenom_enfant = request.form.get(f"prenom_enfant_{i}", "")
         allergies = request.form.get(f"allergies_enfant_{i}", "")
 
-        cursor.execute(
-            "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, allergies) VALUES (?, ?, ?, ?, ?, ?)",
-            (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
-        )
+        try:
+            cursor.execute(
+                "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, allergies) VALUES (?, ?, ?, ?, ?, ?)",
+                (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
+            )
+        except Exception as e:
+            print("❌ Erreur insertion:", e)
+            conn.close()
+            return f"Erreur interne : {e}", 500
 
+        # Email pour chaque enfant
         envoyer_email_tuteur(email_tuteur, nom_enfant, nom_tuteur)
 
     conn.commit()
