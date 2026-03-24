@@ -12,7 +12,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
-RECAPTCHA_SECRET_KEY = os.environ.get("SECRET_KEY")
+RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY")
 
 # Admin sécurisé
 admin_user = "admin"
@@ -24,8 +24,7 @@ admin_password = generate_password_hash(os.environ.get("ADMIN_PASSWORD"))
 def init_db():
     # ⚠️ Supprime l'ancienne base pour forcer la recréation avec le bon schéma
     # ⚠️ Retirez les 2 lignes suivantes après le premier déploiement réussi
-    if os.path.exists("inscriptions.db"):
-        os.remove("inscriptions.db")
+    
 
     conn = sqlite3.connect("inscriptions.db")
     cursor = conn.cursor()
@@ -94,6 +93,9 @@ def envoyer_email_tuteur(email, nom_enfant, nom_tuteur):
     api_key = os.environ.get("MAILGUN_API_KEY")
     domain = os.environ.get("MAILGUN_DOMAIN")
     email_from = os.environ.get("EMAIL_FROM")
+
+    # ← Ajoutez ceci temporairement pour déboguer
+    print(f"DEBUG api_key={api_key}, domain={domain}, from={email_from}, to={email}")
 
     try:
         response = requests.post(
