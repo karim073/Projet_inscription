@@ -188,6 +188,7 @@ def formulaire():
 # -----------------------------
 @app.route('/inscription', methods=['POST'])
 def inscription():
+    print("✅ Route /inscription appelée")  # 👈 ICI
     # reCAPTCHA
     token = request.form.get('g-recaptcha-response')
     r = requests.post(
@@ -195,8 +196,11 @@ def inscription():
         data={'secret': RECAPTCHA_SECRET_KEY, 'response': token}
     )
     result = r.json()
-    if not result.get('success'):
-        return "reCAPTCHA invalide", 400
+    print("reCAPTCHA:", result)
+
+# TEMPORAIRE POUR DEBUG
+# if not result.get('success'):
+#     return "reCAPTCHA invalide", 400
 
     nom_tuteur = request.form['nom_tuteur']
     prenom_tuteur = request.form['prenom_tuteur']
