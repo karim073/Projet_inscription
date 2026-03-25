@@ -15,8 +15,7 @@
 
     <h2>Inscription au cours</h2>
 
-    <form action="/inscription" method="POST">
-          onsubmit="return validerFormulaire()">
+    <form action="/inscription" method="POST" onsubmit="return validerFormulaire()">
 
         <!-- Informations du tuteur -->
         <h3>Informations du tuteur</h3>
@@ -44,7 +43,7 @@
         <!-- Nombre d'enfants -->
         <div class="form-group">
             <label>Nombre d'enfants à inscrire</label>
-            <select id="nb_enfants" onchange="genererFormulaires()">
+            <select id="nb_enfants" name="nb_enfants" onchange="genererFormulaires()">
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>

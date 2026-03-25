@@ -129,7 +129,8 @@ def envoyer_email_tuteur(email_tuteur, prenom_enfant, nom_tuteur):
             },
             timeout=10
         )
-        print(f"Email envoyé : {response.status_code}")
+        print("Status:", response.status_code)
+        print("Response:", response.text)
     except Exception as e:
         print(f"Erreur email : {e}")
 
