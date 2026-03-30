@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <title>Inscription au cours</title>
@@ -8,37 +7,49 @@
     <script src="/static/validation.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
-
 <body>
-
 <div class="container">
-
     <h2>Inscription au cours</h2>
-
     <form action="/inscription" method="POST" onsubmit="return validerFormulaire()">
-
         <!-- Informations du tuteur -->
         <h3>Informations du tuteur</h3>
-
         <div class="form-group">
             <label for="nom_tuteur">Nom du tuteur</label>
             <input type="text" class="form-control" id="nom_tuteur" name="nom_tuteur" placeholder="Nom du tuteur" required>
         </div>
-
         <div class="form-group">
             <label for="prenom_tuteur">Prénom du tuteur</label>
             <input type="text" class="form-control" id="prenom_tuteur" name="prenom_tuteur" placeholder="Prénom du tuteur" required>
         </div>
-
         <div class="form-group">
             <label for="email_tuteur">Email du tuteur</label>
             <input type="email" class="form-control" id="email_tuteur" name="email_tuteur" placeholder="Email du tuteur" required>
         </div>
-
         <div class="form-group">
             <label for="tel_tuteur">Numéro de téléphone</label>
             <input type="tel" class="form-control" id="tel_tuteur" name="tel_tuteur" placeholder="Téléphone du tuteur" required>
         </div>
+
+        <!-- ✅ AJOUT : Adresse et ville du tuteur -->
+        <div class="form-group">
+            <label for="adresse_tuteur">Adresse</label>
+            <input type="text" class="form-control" id="adresse_tuteur" name="adresse_tuteur" placeholder="Adresse du tuteur" required>
+        <div class="form-group">
+    <label for="ville_tuteur">Ville</label>
+    <select class="form-control" id="ville_tuteur" name="ville_tuteur" required>
+        <option value="">-- Choisir une ville --</option>
+        <option value="Sainte-Julie">Sainte-Julie</option>
+        <option value="Saint-Amable">Saint-Amable</option>
+        <option value="Saint-Bruno">Saint-Bruno</option>
+        <option value="Beloeil">Beloeil</option>
+        <option value="Mont-Saint-Hilaire">Mont-Saint-Hilaire</option>
+        <option value="McMasterville">McMasterville</option>
+        <option value="Varennes">Varennes</option>
+        <option value="Contrecoeur">Contrecoeur</option>
+        <option value="Saint-Mathieu-de-Beloeil">Saint-Mathieu-de-Beloeil</option>
+        <option value="Boucherville">Boucherville</option>
+    </select>
+</div>
 
         <!-- Nombre d'enfants -->
         <div class="form-group">
@@ -50,25 +61,16 @@
                 <option value="4">4</option>
             </select>
         </div>
-
         <!-- Champ caché pour Flask -->
         <input type="hidden" name="nb_enfants" id="nb_enfants_hidden">
-
         <!-- Zone où les formulaires enfants seront générés -->
         <div id="formulaires_enfants"></div>
-
         <br>
-
         <!-- ✅ reCAPTCHA v2 (case à cocher) -->
         <div class="g-recaptcha" data-sitekey="6LfogYssAAAAAMDZ3P-gTksNrWWvK6NRz7ytxjh9"></div>
-
         <br>
         <button type="submit">Envoyer l'inscription</button>
     </form>
-
-    
-        
 </div>
-
 </body>
 </html>

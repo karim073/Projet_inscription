@@ -45,13 +45,6 @@ function genererFormulaires() {
             <label for="prenom_enfant_${i}">Prénom de l'enfant</label>
             <input type="text" id="prenom_enfant_${i}" name="prenom_enfant_${i}" placeholder="Prénom de l'enfant" required>
 
-            <label for="cours_enfant_${i}">Niveau du cours</label>
-            <select id="cours_enfant_${i}" name="cours_enfant_${i}" required>
-                <option value="" disabled selected>-- Choisir un niveau --</option>
-                <option value="Élémentaire">Élémentaire</option>
-                <option value="Niveau 1">Niveau 1</option>
-                <option value="Niveau 2">Niveau 2</option>
-                <option value="Niveau 3">Niveau 3</option>
             </select>
 
             <label>
