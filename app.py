@@ -41,6 +41,9 @@ def init_db():
         nom_tuteur TEXT,
         prenom_tuteur TEXT,
         email_tuteur TEXT,
+        telephone TEXT,
+        adresse TEXT,
+        ville TEXT,
         allergies TEXT
     )
     """)
@@ -48,6 +51,32 @@ def init_db():
     conn.close()
 
 init_db()
+
+# -----------------------------
+# MIGRATION DB
+# -----------------------------
+@app.route("/migrate-db")
+def migrate_db():
+    conn = get_db()
+    try:
+        try:
+            conn.execute("ALTER TABLE inscriptions ADD COLUMN telephone TEXT DEFAULT ''")
+        except:
+            pass  # colonne existe déjà
+        try:
+            conn.execute("ALTER TABLE inscriptions ADD COLUMN adresse TEXT DEFAULT ''")
+        except:
+            pass  # colonne existe déjà
+        try:
+            conn.execute("ALTER TABLE inscriptions ADD COLUMN ville TEXT DEFAULT ''")
+        except:
+            pass  # colonne existe déjà
+        conn.commit()
+        return "Migration réussie ✅ — colonnes telephone, adresse et ville ajoutées"
+    except Exception as e:
+        return f"Erreur : {e}"
+    finally:
+        conn.close()
 
 # -----------------------------
 # RESET DB
@@ -150,13 +179,13 @@ def envoyer_csv_admin():
     try:
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, allergies FROM inscriptions")
+        cursor.execute("SELECT nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, telephone, adresse, ville, allergies FROM inscriptions")
         rows = cursor.fetchall()
         conn.close()
 
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(["nom", "prenom", "nom_tuteur", "prenom_tuteur", "email_tuteur", "allergies"])
+        writer.writerow(["nom", "prenom", "nom_tuteur", "prenom_tuteur", "email_tuteur", "telephone", "adresse", "ville", "allergies"])
         writer.writerows(rows)
         csv_content = output.getvalue().encode("utf-8")
 
@@ -188,7 +217,7 @@ def formulaire():
 # -----------------------------
 @app.route('/inscription', methods=['POST'])
 def inscription():
-    print("✅ Route /inscription appelée")  # 👈 ICI
+    print("✅ Route /inscription appelée")
     # reCAPTCHA
     token = request.form.get('g-recaptcha-response')
     r = requests.post(
@@ -198,13 +227,12 @@ def inscription():
     result = r.json()
     print("reCAPTCHA:", result)
 
-# TEMPORAIRE POUR DEBUG
-# if not result.get('success'):
-#     return "reCAPTCHA invalide", 400
-
     nom_tuteur = request.form['nom_tuteur']
     prenom_tuteur = request.form['prenom_tuteur']
     email_tuteur = request.form['email_tuteur']
+    telephone = request.form.get('tel_tuteur', '')
+    adresse = request.form.get('adresse_tuteur', '')
+    ville = request.form.get('ville_tuteur', '')
     nb_enfants = int(request.form.get("nb_enfants", 0))
 
     conn = get_db()
@@ -217,22 +245,19 @@ def inscription():
 
         try:
             cursor.execute(
-                "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, allergies) VALUES (?, ?, ?, ?, ?, ?)",
-                (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, allergies)
+                "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, telephone, adresse, ville, allergies) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, telephone, adresse, ville, allergies)
             )
         except Exception as e:
             print("❌ Erreur insertion:", e)
             conn.close()
             return f"Erreur interne : {e}", 500
 
-        # Email pour chaque enfant
         envoyer_email_tuteur(email_tuteur, prenom_enfant, nom_tuteur)
 
-    # Commit et fermer la connexion une seule fois après la boucle
     conn.commit()
     conn.close()
 
-    # Envoyer CSV admin après la boucle
     envoyer_csv_admin()
 
     return render_template("confirmation.html", nom_tuteur=nom_tuteur)
