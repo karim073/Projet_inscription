@@ -14,6 +14,196 @@
 
 {% endfor %}
 </ul>
+{% extends "base.html" %}
+{% block title %}Tableau de bord — Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-wrap { max-width: 1100px; }
+
+  /* Stats cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.6rem;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(201,168,76,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .stat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+  }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  thead tr {
+    background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+  }
+  thead th {
+    padding: 11px 14px;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--gold-light);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid #f0ece4; }
+  tbody tr:hover { background: #faf8f2; }
+  tbody td { padding: 10px 14px; color: var(--text-dark); vertical-align: middle; }
+
+  .td-name { font-weight: 500; color: var(--navy); }
+  .td-age {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gold-pale);
+    color: #7a5c1e;
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: 32px; height: 22px;
+    border-radius: 11px;
+  }
+  .allergy-tag {
+    background: rgba(192,57,43,0.08);
+    color: var(--error);
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .no-allergy { color: rgba(0,0,0,0.25); font-size: 0.8rem; }
+
+  /* Action bar */
+  .action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block nav %}
+<a href="/" class="btn-nav btn-nav-ghost">Accueil</a>
+<a href="/export" class="btn-nav btn-nav-ghost">⬇ Export Excel</a>
+<a href="/logout" class="btn-nav btn-nav-gold">Déconnexion</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+
+  <div style="margin-bottom:2rem;padding-top:1rem;">
+    <p class="page-subtitle" style="text-align:left;margin-bottom:0;">
+      <span class="badge badge-navy">🔒 Espace administrateur</span>
+    </p>
+    <h1 class="page-title" style="text-align:left;font-size:2rem;">Tableau de bord</h1>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">🎓</div>
+      <div class="stat-label">Total inscriptions</div>
+      <div class="stat-value">{{ total }}</div>
+    </div>
+    {% for allergie, nb in stats %}
+    <div class="stat-card">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-label">{{ allergie if allergie else "Aucune allergie" }}</div>
+      <div class="stat-value" style="font-size:1.8rem;">{{ nb }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">📋</div>
+      <h2>Liste des participants</h2>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div class="action-bar" style="padding:1rem 1.5rem;">
+        <p style="font-size:0.85rem;color:var(--text-mid);">{{ total }} participant(s) inscrit(s)</p>
+        <a href="/export" class="btn btn-primary btn-sm">⬇ Exporter Excel</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Enfant</th>
+              <th>Âge</th>
+              <th>Tuteur</th>
+              <th>Courriel</th>
+              <th>Téléphone</th>
+              <th>Ville</th>
+              <th>Allergies</th>
+              <th>Contact 2</th>
+              <th>Tél. Contact 2</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in data %}
+            <tr>
+              <td style="color:var(--text-mid);font-size:0.78rem;">{{ row[0] }}</td>
+              <td class="td-name">{{ row[2] }} {{ row[1] }}</td>
+              <td><span class="td-age">{{ row[3] if row[3] else '—' }}</span></td>
+              <td>{{ row[5] }} {{ row[4] }}</td>
+              <td style="font-size:0.82rem;">{{ row[6] }}</td>
+              <td>{{ row[7] if row[7] else '—' }}</td>
+              <td>{{ row[9] if row[9] else '—' }}</td>
+              <td>
+                {% if row[10] %}
+                  <span class="allergy-tag">{{ row[10] }}</span>
+                {% else %}
+                  <span class="no-allergy">Aucune</span>
+                {% endif %}
+              </td>
+              <td>{{ row[12] if row[12] else '' }} {{ row[11] if row[11] else '—' }}</td>
+              <td>{{ row[13] if row[13] else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
 
 <h3>Liste des participants</h3>
 

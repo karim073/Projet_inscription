@@ -5,6 +5,82 @@
 </head>
 
 <body>
+{% extends "base.html" %}
+{% block title %}Confirmation — Académie{% endblock %}
+
+{% block extra_head %}
+<style>
+  .confirm-wrap {
+    max-width: 560px;
+    margin: 5rem auto;
+    padding: 0 1.5rem;
+    text-align: center;
+  }
+  .confirm-icon {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.8rem;
+    box-shadow: 0 8px 30px rgba(201,168,76,0.4);
+    animation: popIn 0.5s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity:0; transform: scale(0.5); }
+    to   { opacity:1; transform: scale(1); }
+  }
+  .confirm-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.6rem;
+  }
+  .confirm-msg { color: var(--text-mid); font-size: 0.95rem; line-height: 1.7; margin-bottom: 2rem; }
+  .confirm-name { color: var(--gold); font-weight: 600; }
+  .confirm-card {
+    background: var(--white);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    box-shadow: var(--shadow);
+    text-align: left;
+    margin-bottom: 2rem;
+  }
+  .confirm-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .confirm-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 0.88rem; color: var(--text-mid);
+  }
+  .confirm-list li::before {
+    content: '✦';
+    color: var(--gold);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirm-wrap">
+  <div class="confirm-icon">✓</div>
+  <h1 class="confirm-title">Inscription confirmée !</h1>
+  <p class="confirm-msg">
+    Merci, <span class="confirm-name">{{ nom_tuteur }}</span>.<br/>
+    Votre inscription a bien été reçue. Un courriel de confirmation vous a été envoyé.
+  </p>
+
+  <div class="confirm-card">
+    <ul class="confirm-list">
+      <li>Vérifiez votre boîte courriel pour la confirmation détaillée.</li>
+      <li>Notre équipe vous contactera sous 24–48 h pour finaliser les détails.</li>
+      <li>Conservez ce numéro de référence pour tout suivi.</li>
+    </ul>
+  </div>
+
+  <a href="/" class="btn btn-primary">← Retour à l'accueil</a>
+</div>
+{% endblock %}
 
 <h2>Merci {{ nom }} !</h2>
 

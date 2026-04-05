@@ -38,13 +38,17 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nom TEXT,
         prenom TEXT,
+        age INTEGER,
         nom_tuteur TEXT,
         prenom_tuteur TEXT,
         email_tuteur TEXT,
         telephone TEXT,
         adresse TEXT,
         ville TEXT,
-        allergies TEXT
+        allergies TEXT,
+        nom_contact2 TEXT,
+        prenom_contact2 TEXT,
+        telephone_contact2 TEXT
     )
     """)
     conn.commit()
@@ -59,20 +63,22 @@ init_db()
 def migrate_db():
     conn = get_db()
     try:
-        try:
-            conn.execute("ALTER TABLE inscriptions ADD COLUMN telephone TEXT DEFAULT ''")
-        except:
-            pass  # colonne existe déjà
-        try:
-            conn.execute("ALTER TABLE inscriptions ADD COLUMN adresse TEXT DEFAULT ''")
-        except:
-            pass  # colonne existe déjà
-        try:
-            conn.execute("ALTER TABLE inscriptions ADD COLUMN ville TEXT DEFAULT ''")
-        except:
-            pass  # colonne existe déjà
+        columns_to_add = [
+            ("telephone", "TEXT DEFAULT ''"),
+            ("adresse", "TEXT DEFAULT ''"),
+            ("ville", "TEXT DEFAULT ''"),
+            ("age", "INTEGER DEFAULT 0"),
+            ("nom_contact2", "TEXT DEFAULT ''"),
+            ("prenom_contact2", "TEXT DEFAULT ''"),
+            ("telephone_contact2", "TEXT DEFAULT ''"),
+        ]
+        for col, coltype in columns_to_add:
+            try:
+                conn.execute(f"ALTER TABLE inscriptions ADD COLUMN {col} {coltype}")
+            except:
+                pass
         conn.commit()
-        return "Migration réussie ✅ — colonnes telephone, adresse et ville ajoutées"
+        return "Migration réussie ✅ — toutes les colonnes ont été ajoutées."
     except Exception as e:
         return f"Erreur : {e}"
     finally:
@@ -104,12 +110,18 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-
         if username == admin_user and check_password_hash(admin_password, password):
             session["admin"] = True
             return redirect(url_for("dashboard"))
-
     return render_template("login.html")
+
+# -----------------------------
+# LOGOUT
+# -----------------------------
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 # -----------------------------
 # DASHBOARD
@@ -159,7 +171,6 @@ def envoyer_email_tuteur(email_tuteur, prenom_enfant, nom_tuteur):
             timeout=10
         )
         print("Status:", response.status_code)
-        print("Response:", response.text)
     except Exception as e:
         print(f"Erreur email : {e}")
 
@@ -179,13 +190,22 @@ def envoyer_csv_admin():
     try:
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, telephone, adresse, ville, allergies FROM inscriptions")
+        cursor.execute("""
+            SELECT nom, prenom, age, nom_tuteur, prenom_tuteur, email_tuteur,
+                   telephone, adresse, ville, allergies,
+                   nom_contact2, prenom_contact2, telephone_contact2
+            FROM inscriptions
+        """)
         rows = cursor.fetchall()
         conn.close()
 
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(["nom", "prenom", "nom_tuteur", "prenom_tuteur", "email_tuteur", "telephone", "adresse", "ville", "allergies"])
+        writer.writerow([
+            "nom", "prenom", "age", "nom_tuteur", "prenom_tuteur",
+            "email_tuteur", "telephone", "adresse", "ville", "allergies",
+            "nom_contact2", "prenom_contact2", "telephone_contact2"
+        ])
         writer.writerows(rows)
         csv_content = output.getvalue().encode("utf-8")
 
@@ -218,6 +238,7 @@ def formulaire():
 @app.route('/inscription', methods=['POST'])
 def inscription():
     print("✅ Route /inscription appelée")
+
     # reCAPTCHA
     token = request.form.get('g-recaptcha-response')
     r = requests.post(
@@ -227,12 +248,19 @@ def inscription():
     result = r.json()
     print("reCAPTCHA:", result)
 
+    # Tuteur principal
     nom_tuteur = request.form['nom_tuteur']
     prenom_tuteur = request.form['prenom_tuteur']
     email_tuteur = request.form['email_tuteur']
     telephone = request.form.get('tel_tuteur', '')
     adresse = request.form.get('adresse_tuteur', '')
     ville = request.form.get('ville_tuteur', '')
+
+    # 2e personne à contacter (obligatoire)
+    nom_contact2 = request.form.get('nom_contact2', '')
+    prenom_contact2 = request.form.get('prenom_contact2', '')
+    telephone_contact2 = request.form.get('telephone_contact2', '')
+
     nb_enfants = int(request.form.get("nb_enfants", 0))
 
     conn = get_db()
@@ -241,13 +269,22 @@ def inscription():
     for i in range(1, nb_enfants + 1):
         nom_enfant = request.form.get(f"nom_enfant_{i}", "")
         prenom_enfant = request.form.get(f"prenom_enfant_{i}", "")
+        age_enfant = request.form.get(f"age_enfant_{i}", 0)
         allergies = request.form.get(f"allergies_enfant_{i}", "")
 
         try:
-            cursor.execute(
-                "INSERT INTO inscriptions (nom, prenom, nom_tuteur, prenom_tuteur, email_tuteur, telephone, adresse, ville, allergies) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (nom_enfant, prenom_enfant, nom_tuteur, prenom_tuteur, email_tuteur, telephone, adresse, ville, allergies)
-            )
+            cursor.execute("""
+                INSERT INTO inscriptions
+                (nom, prenom, age, nom_tuteur, prenom_tuteur, email_tuteur,
+                 telephone, adresse, ville, allergies,
+                 nom_contact2, prenom_contact2, telephone_contact2)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                nom_enfant, prenom_enfant, age_enfant,
+                nom_tuteur, prenom_tuteur, email_tuteur,
+                telephone, adresse, ville, allergies,
+                nom_contact2, prenom_contact2, telephone_contact2
+            ))
         except Exception as e:
             print("❌ Erreur insertion:", e)
             conn.close()

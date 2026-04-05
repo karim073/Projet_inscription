@@ -21,7 +21,425 @@
         </div>
 
         <div class="form-group">
-            <label for="prenom_tuteur">Prénom du tuteur</label>
+            <label for="prenom_tuteur">Prénom du tuteur</labe{% extends "base.html" %}
+
+{% block title %}Inscription aux cours — Académie{% endblock %}
+
+{% block extra_head %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<style>
+  /* Hero banner */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, #1e3a5f 100%);
+    padding: 3.5rem 1.5rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(201,168,76,0.08) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.4);
+    color: var(--gold-light);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 0.8rem;
+  }
+  .hero h1 em { color: var(--gold); font-style: normal; }
+  .hero p { color: rgba(255,255,255,0.65); font-size: 0.95rem; max-width: 480px; margin: 0 auto; }
+
+  /* Steps indicator */
+  .steps-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin: 2rem auto 0;
+    max-width: 400px;
+  }
+  .step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    position: relative;
+  }
+  .step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 14px; left: 50%;
+    width: 100%;
+    height: 1px;
+    background: rgba(201,168,76,0.3);
+  }
+  .step-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid rgba(201,168,76,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+  }
+  .step-dot.active {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border-color: transparent;
+    color: var(--navy);
+  }
+  .step-label { font-size: 0.65rem; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; text-transform: uppercase; }
+  .step-label.active { color: var(--gold-light); }
+
+  /* Form layout */
+  .form-section { margin-bottom: 1.5rem; }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(201,168,76,0.4), transparent);
+  }
+  .section-number {
+    width: 24px; height: 24px;
+    background: var(--navy);
+    color: var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Enfants */
+  .enfant-block {
+    background: linear-gradient(135deg, #fdfcf8, #f8f5ed);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  .enfant-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--navy-mid);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .enfant-badge {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--navy);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .remove-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(192,57,43,0.08);
+    border: 1px solid rgba(192,57,43,0.2);
+    color: var(--error);
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .remove-btn:hover { background: rgba(192,57,43,0.15); }
+
+  #add-enfant-btn {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px dashed rgba(201,168,76,0.5);
+    border-radius: var(--radius);
+    background: rgba(201,168,76,0.04);
+    color: var(--gold);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  #add-enfant-btn:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+
+  /* Submit area */
+  .form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(201,168,76,0.2);
+  }
+
+  .mandatory-note { font-size: 0.78rem; color: var(--text-mid); }
+  .mandatory-note span { color: var(--gold); }
+
+  /* Contact 2 card */
+  .contact2-card {
+    background: linear-gradient(135deg, #f0f4f9, #e8edf5);
+    border: 1px solid rgba(13,27,42,0.12);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-tag">✦ Inscription en ligne</div>
+  <h1>Rejoignez notre <em>Académie</em></h1>
+  <p>Remplissez le formulaire ci-dessous pour inscrire votre enfant à nos cours.</p>
+
+  <div class="steps-bar">
+    <div class="step-item">
+      <div class="step-dot active">1</div>
+      <div class="step-label active">Tuteur</div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot active">2</div>
+      <div class="step-label active">Contact</div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot active">3</div>
+      <div class="step-label active">Enfants</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+
+  <form method="POST" action="/inscription" id="mainForm">
+
+    <!-- ── 1. TUTEUR PRINCIPAL ── -->
+    <div class="card form-section">
+      <div class="card-header">
+        <div class="card-icon">👤</div>
+        <h2>Tuteur principal</h2>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Prénom <span class="required">*</span></label>
+            <input type="text" name="prenom_tuteur" required placeholder="ex. Marie"/>
+          </div>
+          <div class="field">
+            <label>Nom <span class="required">*</span></label>
+            <input type="text" name="nom_tuteur" required placeholder="ex. Dupont"/>
+          </div>
+          <div class="field">
+            <label>Courriel <span class="required">*</span></label>
+            <input type="email" name="email_tuteur" required placeholder="marie@exemple.com"/>
+          </div>
+          <div class="field">
+            <label>Téléphone <span class="required">*</span></label>
+            <input type="tel" name="tel_tuteur" required placeholder="514-000-0000"/>
+          </div>
+          <div class="field">
+            <label>Adresse</label>
+            <input type="text" name="adresse_tuteur" placeholder="123 rue Principale"/>
+          </div>
+          <div class="field">
+            <label>Ville</label>
+            <input type="text" name="ville_tuteur" placeholder="Montréal"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 2. 2e PERSONNE À CONTACTER ── -->
+    <div class="card form-section">
+      <div class="card-header">
+        <div class="card-icon">📞</div>
+        <h2>2<sup>e</sup> personne à contacter</h2>
+      </div>
+      <div class="card-body">
+        <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1.2rem;">
+          Cette personne sera contactée en cas d'urgence si le tuteur principal est injoignable.
+        </p>
+        <div class="contact2-card">
+          <div class="form-grid cols-3">
+            <div class="field">
+              <label>Prénom <span class="required">*</span></label>
+              <input type="text" name="prenom_contact2" required placeholder="ex. Jean"/>
+            </div>
+            <div class="field">
+              <label>Nom <span class="required">*</span></label>
+              <input type="text" name="nom_contact2" required placeholder="ex. Tremblay"/>
+            </div>
+            <div class="field">
+              <label>Téléphone <span class="required">*</span></label>
+              <input type="tel" name="telephone_contact2" required placeholder="514-000-0000"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. ENFANTS ── -->
+    <div class="card form-section">
+      <div class="card-header">
+        <div class="card-icon">🎓</div>
+        <h2>Enfant(s) à inscrire</h2>
+      </div>
+      <div class="card-body">
+        <input type="hidden" name="nb_enfants" id="nb_enfants" value="1"/>
+
+        <div id="enfants-container">
+          <!-- Enfant 1 -->
+          <div class="enfant-block" id="enfant-1">
+            <div class="enfant-title">
+              <span class="enfant-badge">Enfant 1</span>
+              Informations de l'élève
+            </div>
+            <div class="form-grid cols-3">
+              <div class="field">
+                <label>Prénom <span class="required">*</span></label>
+                <input type="text" name="prenom_enfant_1" required placeholder="ex. Lucas"/>
+              </div>
+              <div class="field">
+                <label>Nom <span class="required">*</span></label>
+                <input type="text" name="nom_enfant_1" required placeholder="ex. Dupont"/>
+              </div>
+              <div class="field">
+                <label>Âge <span class="required">*</span></label>
+                <input type="number" name="age_enfant_1" required min="3" max="18" placeholder="ex. 8"/>
+              </div>
+              <div class="field full">
+                <label>Allergies / informations médicales</label>
+                <textarea name="allergies_enfant_1" placeholder="Aucune allergie connue, ou précisez..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" id="add-enfant-btn" onclick="ajouterEnfant()">
+          ＋ Ajouter un autre enfant
+        </button>
+      </div>
+    </div>
+
+    <!-- ── reCAPTCHA + SUBMIT ── -->
+    <div class="card">
+      <div class="card-body">
+        <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY" style="margin-bottom:1rem;"></div>
+        <div class="form-footer">
+          <p class="mandatory-note">Les champs marqués <span>*</span> sont obligatoires.</p>
+          <button type="submit" class="btn btn-primary">
+            ✦ Soumettre l'inscription
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let nbEnfants = 1;
+
+  function ajouterEnfant() {
+    nbEnfants++;
+    document.getElementById('nb_enfants').value = nbEnfants;
+
+    const container = document.getElementById('enfants-container');
+    const bloc = document.createElement('div');
+    bloc.className = 'enfant-block';
+    bloc.id = `enfant-${nbEnfants}`;
+    bloc.innerHTML = `
+      <div class="enfant-title">
+        <span class="enfant-badge">Enfant ${nbEnfants}</span>
+        Informations de l'élève
+      </div>
+      <button type="button" class="remove-btn" onclick="supprimerEnfant(${nbEnfants})">✕ Retirer</button>
+      <div class="form-grid cols-3">
+        <div class="field">
+          <label>Prénom <span class="required">*</span></label>
+          <input type="text" name="prenom_enfant_${nbEnfants}" required placeholder="ex. Emma"/>
+        </div>
+        <div class="field">
+          <label>Nom <span class="required">*</span></label>
+          <input type="text" name="nom_enfant_${nbEnfants}" required placeholder="ex. Dupont"/>
+        </div>
+        <div class="field">
+          <label>Âge <span class="required">*</span></label>
+          <input type="number" name="age_enfant_${nbEnfants}" required min="3" max="18" placeholder="ex. 8"/>
+        </div>
+        <div class="field full">
+          <label>Allergies / informations médicales</label>
+          <textarea name="allergies_enfant_${nbEnfants}" placeholder="Aucune allergie connue, ou précisez..."></textarea>
+        </div>
+      </div>
+    `;
+    container.appendChild(bloc);
+
+    // Animate in
+    bloc.style.opacity = '0';
+    bloc.style.transform = 'translateY(12px)';
+    requestAnimationFrame(() => {
+      bloc.style.transition = 'opacity 0.3s, transform 0.3s';
+      bloc.style.opacity = '1';
+      bloc.style.transform = 'translateY(0)';
+    });
+  }
+
+  function supprimerEnfant(n) {
+    const bloc = document.getElementById(`enfant-${n}`);
+    if (bloc) {
+      bloc.style.transition = 'opacity 0.2s';
+      bloc.style.opacity = '0';
+      setTimeout(() => { bloc.remove(); nbEnfants--; document.getElementById('nb_enfants').value = nbEnfants; }, 220);
+    }
+  }
+</script>
+{% endblock %}
+l>
             <input type="text" class="form-control" id="prenom_tuteur" name="prenom_tuteur" placeholder="Prénom du tuteur" required>
         </div>
 

@@ -8,6 +8,50 @@
 <th>Email</th>
 <th>Cours</th>
 </tr>
+{% extends "base.html" %}
+{% block title %}Admin — Inscriptions{% endblock %}
+
+{% block nav %}
+<a href="/dashboard" class="btn-nav btn-nav-ghost">Tableau de bord</a>
+<a href="/export" class="btn-nav btn-nav-ghost">⬇ Excel</a>
+<a href="/logout" class="btn-nav btn-nav-gold">Déconnexion</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <h1 class="page-title">Inscriptions</h1>
+  <p class="page-subtitle">Liste complète des participants inscrits</p>
+
+  <div class="card">
+    <div class="card-body" style="padding:0;overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+        <thead>
+          <tr style="background:linear-gradient(135deg,var(--navy),var(--navy-mid));">
+            <th style="padding:11px 14px;text-align:left;color:var(--gold-light);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;">#</th>
+            <th style="padding:11px 14px;text-align:left;color:var(--gold-light);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;">Enfant</th>
+            <th style="padding:11px 14px;text-align:left;color:var(--gold-light);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;">Âge</th>
+            <th style="padding:11px 14px;text-align:left;color:var(--gold-light);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;">Tuteur</th>
+            <th style="padding:11px 14px;text-align:left;color:var(--gold-light);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;">Contact 2</th>
+            <th style="padding:11px 14px;text-align:left;color:var(--gold-light);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;">Allergies</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data %}
+          <tr style="border-bottom:1px solid #f0ece4;">
+            <td style="padding:10px 14px;color:#888;font-size:0.78rem;">{{ row[0] }}</td>
+            <td style="padding:10px 14px;font-weight:500;color:var(--navy);">{{ row[2] }} {{ row[1] }}</td>
+            <td style="padding:10px 14px;">{{ row[3] if row[3] else '—' }}</td>
+            <td style="padding:10px 14px;">{{ row[5] }} {{ row[4] }}<br/><span style="font-size:0.78rem;color:#888;">{{ row[6] }}</span></td>
+            <td style="padding:10px 14px;">{{ row[12] if row[12] else '' }} {{ row[11] if row[11] else '—' }}<br/><span style="font-size:0.78rem;color:#888;">{{ row[13] if row[13] else '' }}</span></td>
+            <td style="padding:10px 14px;">{{ row[10] if row[10] else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
 
 {% for row in data %}
 

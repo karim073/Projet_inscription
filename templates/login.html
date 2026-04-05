@@ -13,4 +13,112 @@
 
 </form>
 
-</html>
+</html>{% extends "base.html" %}
+{% block title %}Connexion — Espace Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+  body { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); min-height: 100vh; }
+  .site-footer { background: rgba(0,0,0,0.2); }
+
+  .login-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 144px);
+    padding: 2rem 1rem;
+  }
+
+  .login-box {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .login-emblem {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 700;
+    color: var(--navy);
+    margin: 0 auto 1rem;
+    box-shadow: 0 8px 30px rgba(201,168,76,0.35);
+  }
+  .login-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.3rem;
+  }
+  .login-sub {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .login-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 14px;
+    padding: 2rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  .login-card .field { margin-bottom: 1.2rem; }
+  .login-card label {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.75rem;
+  }
+  .login-card input {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.15);
+    color: #fff;
+  }
+  .login-card input::placeholder { color: rgba(255,255,255,0.25); }
+  .login-card input:focus {
+    border-color: var(--gold);
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.2);
+  }
+
+  .login-card .btn-primary { width: 100%; justify-content: center; margin-top: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block nav %}
+<a href="/" class="btn-nav btn-nav-ghost">← Retour</a>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-emblem">A</div>
+      <div class="login-tagline">Espace administrateur</div>
+      <div class="login-sub">Académie · Accès sécurisé</div>
+    </div>
+
+    <div class="login-card">
+      <form method="POST" action="/login">
+        <div class="field">
+          <label>Identifiant</label>
+          <input type="text" name="username" required placeholder="admin" autocomplete="username"/>
+        </div>
+        <div class="field">
+          <label>Mot de passe</label>
+          <input type="password" name="password" required placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <button type="submit" class="btn btn-primary">Connexion →</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
