@@ -1,37 +1,15 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Inscription au cours</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/validation.js"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-</head>
-<body>
-<div class="container">
-    <h2>Inscription au cours</h2>
-    <form action="/inscription" method="POST" onsubmit="return validerFormulaire()">
-
-        <!-- Informations du tuteur -->
-        <h3>Informations du tuteur</h3>
-
-        <div class="form-group">
-            <label for="nom_tuteur">Nom du tuteur</label>
-            <input type="text" class="form-control" id="nom_tuteur" name="nom_tuteur" placeholder="Nom du tuteur" required>
-        </div>
-
-        <div class="form-group">
-            <label for="prenom_tuteur">Prénom du tuteur</labe{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Inscription aux cours — Académie{% endblock %}
 
 {% block extra_head %}
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <style>
-  /* Hero banner */
+
+  /* ── HERO ── */
   .hero {
     background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, #1e3a5f 100%);
-    padding: 3.5rem 1.5rem 4rem;
+    padding: 3rem 1.5rem 3.5rem;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -47,193 +25,211 @@
     background: rgba(201,168,76,0.15);
     border: 1px solid rgba(201,168,76,0.4);
     color: var(--gold-light);
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    padding: 5px 14px;
-    border-radius: 20px;
-    margin-bottom: 1rem;
+    font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 20px; margin-bottom: 1rem;
   }
   .hero h1 {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.15;
-    margin-bottom: 0.8rem;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700; color: #fff; line-height: 1.15; margin-bottom: 0.6rem;
   }
   .hero h1 em { color: var(--gold); font-style: normal; }
-  .hero p { color: rgba(255,255,255,0.65); font-size: 0.95rem; max-width: 480px; margin: 0 auto; }
+  .hero p { color: rgba(255,255,255,0.6); font-size: 0.92rem; max-width: 460px; margin: 0 auto; }
 
-  /* Steps indicator */
+  /* ── STEPS ── */
   .steps-bar {
-    display: flex;
-    justify-content: center;
-    gap: 0;
-    margin: 2rem auto 0;
-    max-width: 400px;
+    display: flex; justify-content: center;
+    margin: 1.8rem auto 0; max-width: 360px;
   }
   .step-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    flex: 1;
-    position: relative;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 5px; flex: 1; position: relative;
   }
   .step-item:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 14px; left: 50%;
-    width: 100%;
-    height: 1px;
+    content: ''; position: absolute;
+    top: 13px; left: 50%; width: 100%; height: 1px;
     background: rgba(201,168,76,0.3);
   }
   .step-dot {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.1);
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(255,255,255,0.08);
     border: 1.5px solid rgba(201,168,76,0.3);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.5);
-    font-weight: 600;
-    position: relative;
-    z-index: 1;
+    font-size: 0.72rem; font-weight: 600;
+    color: rgba(255,255,255,0.4); position: relative; z-index: 1;
   }
   .step-dot.active {
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    border-color: transparent;
-    color: var(--navy);
+    border-color: transparent; color: var(--navy);
   }
-  .step-label { font-size: 0.65rem; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; text-transform: uppercase; }
+  .step-label { font-size: 0.62rem; color: rgba(255,255,255,0.35); letter-spacing: 0.08em; text-transform: uppercase; }
   .step-label.active { color: var(--gold-light); }
 
-  /* Form layout */
-  .form-section { margin-bottom: 1.5rem; }
-  .section-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--navy);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(201,168,76,0.4), transparent);
-  }
-  .section-number {
-    width: 24px; height: 24px;
-    background: var(--navy);
-    color: var(--gold);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.72rem;
-    font-weight: 700;
-    flex-shrink: 0;
+  /* ── PAGE WRAP ── */
+  .page-wrap { max-width: 1000px; padding: 2rem 1.2rem 4rem; }
+
+  .form-section { margin-bottom: 1.4rem; }
+
+  /* ── HORIZONTAL CARD LAYOUT ── */
+  .hform {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    min-height: 0;
   }
 
-  /* Enfants */
+  .hform-side {
+    background: linear-gradient(180deg, var(--navy) 0%, var(--navy-mid) 100%);
+    padding: 1.5rem 1.3rem;
+    display: flex; flex-direction: column;
+    justify-content: flex-start; gap: 8px;
+  }
+  .hform-side-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; margin-bottom: 4px; flex-shrink: 0;
+  }
+  .hform-side h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; font-weight: 600; color: #fff; line-height: 1.2; margin: 0;
+  }
+  .hform-side p {
+    font-size: 0.73rem; color: rgba(255,255,255,0.42); line-height: 1.5; margin: 3px 0 0;
+  }
+
+  .hform-body {
+    padding: 1.3rem 1.5rem;
+    background: var(--white); min-width: 0;
+  }
+
+  /* ── FIELD ROWS ── */
+  .frow { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
+  .frow:last-child { margin-bottom: 0; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
+  .field.f-full  { flex: 0 0 100%; min-width: 0; }
+  .field.f-half  { flex: 1 1 calc(50% - 0.45rem); min-width: 120px; }
+  .field.f-third { flex: 1 1 calc(33% - 0.6rem);  min-width: 110px; }
+  .field.f-age   { flex: 0 0 82px; min-width: 70px; }
+
+  label {
+    font-size: 0.72rem; font-weight: 500;
+    color: var(--navy-light);
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  label .required { color: var(--gold); margin-left: 2px; }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  textarea {
+    width: 100%; padding: 9px 11px;
+    border: 1.5px solid #e0dbd0; border-radius: 7px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.87rem;
+    color: var(--text-dark); background: #fdfdfd;
+    transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    background: #fff;
+  }
+  textarea { min-height: 64px; resize: vertical; }
+
+  /* ── ENFANT BLOCK ── */
   .enfant-block {
-    background: linear-gradient(135deg, #fdfcf8, #f8f5ed);
-    border: 1px solid rgba(201,168,76,0.25);
-    border-radius: var(--radius);
-    padding: 1.4rem;
-    margin-bottom: 1rem;
-    position: relative;
+    background: #faf8f2;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 8px; padding: 1rem 1.1rem;
+    margin-bottom: 0.85rem; position: relative;
   }
   .enfant-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--navy-mid);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    display: flex; align-items: center; gap: 7px; margin-bottom: 0.85rem;
   }
   .enfant-badge {
     background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    color: var(--navy);
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    color: var(--navy); font-size: 0.6rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .enfant-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.92rem; color: var(--navy-mid); font-weight: 600;
   }
   .remove-btn {
-    position: absolute; top: 12px; right: 12px;
-    background: rgba(192,57,43,0.08);
-    border: 1px solid rgba(192,57,43,0.2);
-    color: var(--error);
-    font-size: 0.75rem;
-    padding: 4px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(192,57,43,0.07);
+    border: 1px solid rgba(192,57,43,0.18);
+    color: var(--error); font-size: 0.7rem;
+    padding: 3px 9px; border-radius: 5px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
   }
-  .remove-btn:hover { background: rgba(192,57,43,0.15); }
+  .remove-btn:hover { background: rgba(192,57,43,0.14); }
 
   #add-enfant-btn {
-    width: 100%;
-    padding: 12px;
-    border: 1.5px dashed rgba(201,168,76,0.5);
-    border-radius: var(--radius);
-    background: rgba(201,168,76,0.04);
-    color: var(--gold);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+    width: 100%; padding: 10px;
+    border: 1.5px dashed rgba(201,168,76,0.42);
+    border-radius: 8px; background: rgba(201,168,76,0.03);
+    color: var(--gold); font-family: 'DM Sans', sans-serif;
+    font-size: 0.83rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
   }
-  #add-enfant-btn:hover { background: rgba(201,168,76,0.1); border-color: var(--gold); }
+  #add-enfant-btn:hover { background: rgba(201,168,76,0.09); border-color: var(--gold); }
 
-  /* Submit area */
+  /* ── CONTACT 2 INNER ── */
+  .contact2-inner {
+    background: #f0f4f9;
+    border: 1px solid rgba(13,27,42,0.1);
+    border-radius: 8px; padding: 1rem 1.1rem;
+  }
+
+  /* ── SUBMIT ── */
   .form-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(201,168,76,0.2);
+    display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap;
+    gap: 1rem; margin-top: 1.1rem; padding-top: 1.1rem;
+    border-top: 1px solid rgba(201,168,76,0.18);
   }
-
-  .mandatory-note { font-size: 0.78rem; color: var(--text-mid); }
+  .mandatory-note { font-size: 0.75rem; color: var(--text-mid); }
   .mandatory-note span { color: var(--gold); }
 
-  /* Contact 2 card */
-  .contact2-card {
-    background: linear-gradient(135deg, #f0f4f9, #e8edf5);
-    border: 1px solid rgba(13,27,42,0.12);
-    border-radius: var(--radius);
-    padding: 1.4rem;
+  /* ── TABLETTE ≤ 680px ── */
+  @media (max-width: 680px) {
+    .hform { grid-template-columns: 1fr; }
+    .hform-side {
+      flex-direction: row; align-items: center;
+      padding: 0.9rem 1.1rem; gap: 10px;
+    }
+    .hform-side-icon { margin-bottom: 0; width: 30px; height: 30px; font-size: 0.85rem; }
+    .hform-side p { display: none; }
+    .hform-body { padding: 1rem 1.1rem; }
+  }
+
+  /* ── MOBILE ≤ 460px ── */
+  @media (max-width: 460px) {
+    .page-wrap { padding: 0.8rem 0.6rem 3rem; }
+    .field,
+    .field.f-half,
+    .field.f-third,
+    .field.f-age { flex: 0 0 100% !important; min-width: 0 !important; }
+    .frow { gap: 0.6rem; }
+    .form-footer { flex-direction: column; align-items: stretch; }
+    .btn { width: 100%; justify-content: center; }
+    .g-recaptcha { transform: scale(0.85); transform-origin: left top; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Hero -->
 <div class="hero">
   <div class="hero-tag">✦ Inscription en ligne</div>
   <h1>Rejoignez notre <em>Académie</em></h1>
   <p>Remplissez le formulaire ci-dessous pour inscrire votre enfant à nos cours.</p>
-
   <div class="steps-bar">
     <div class="step-item">
       <div class="step-dot active">1</div>
@@ -251,66 +247,75 @@
 </div>
 
 <div class="page-wrap">
+<form method="POST" action="/inscription" id="mainForm">
 
-  <form method="POST" action="/inscription" id="mainForm">
-
-    <!-- ── 1. TUTEUR PRINCIPAL ── -->
-    <div class="card form-section">
-      <div class="card-header">
-        <div class="card-icon">👤</div>
-        <h2>Tuteur principal</h2>
+  <!-- ── 1. TUTEUR PRINCIPAL ── -->
+  <div class="card form-section" style="overflow:hidden;">
+    <div class="hform">
+      <div class="hform-side">
+        <div class="hform-side-icon">👤</div>
+        <div>
+          <h2>Tuteur principal</h2>
+          <p>Coordonnées du responsable légal de l'enfant.</p>
+        </div>
       </div>
-      <div class="card-body">
-        <div class="form-grid">
-          <div class="field">
+      <div class="hform-body">
+        <div class="frow">
+          <div class="field f-half">
             <label>Prénom <span class="required">*</span></label>
             <input type="text" name="prenom_tuteur" required placeholder="ex. Marie"/>
           </div>
-          <div class="field">
+          <div class="field f-half">
             <label>Nom <span class="required">*</span></label>
             <input type="text" name="nom_tuteur" required placeholder="ex. Dupont"/>
           </div>
-          <div class="field">
+        </div>
+        <div class="frow">
+          <div class="field f-half">
             <label>Courriel <span class="required">*</span></label>
             <input type="email" name="email_tuteur" required placeholder="marie@exemple.com"/>
           </div>
-          <div class="field">
+          <div class="field f-half">
             <label>Téléphone <span class="required">*</span></label>
             <input type="tel" name="tel_tuteur" required placeholder="514-000-0000"/>
           </div>
-          <div class="field">
+        </div>
+        <div class="frow">
+          <div class="field" style="flex:2;min-width:140px;">
             <label>Adresse</label>
             <input type="text" name="adresse_tuteur" placeholder="123 rue Principale"/>
           </div>
-          <div class="field">
+          <div class="field" style="flex:1;min-width:110px;">
             <label>Ville</label>
             <input type="text" name="ville_tuteur" placeholder="Montréal"/>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ── 2. 2e PERSONNE À CONTACTER ── -->
-    <div class="card form-section">
-      <div class="card-header">
-        <div class="card-icon">📞</div>
-        <h2>2<sup>e</sup> personne à contacter</h2>
+  <!-- ── 2. 2e CONTACT ── -->
+  <div class="card form-section" style="overflow:hidden;">
+    <div class="hform">
+      <div class="hform-side">
+        <div class="hform-side-icon">📞</div>
+        <div>
+          <h2>2<sup style="font-size:0.6em;">e</sup> contact</h2>
+          <p>Personne à joindre en urgence si le tuteur est injoignable.</p>
+        </div>
       </div>
-      <div class="card-body">
-        <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:1.2rem;">
-          Cette personne sera contactée en cas d'urgence si le tuteur principal est injoignable.
-        </p>
-        <div class="contact2-card">
-          <div class="form-grid cols-3">
-            <div class="field">
+      <div class="hform-body">
+        <div class="contact2-inner">
+          <div class="frow">
+            <div class="field f-third">
               <label>Prénom <span class="required">*</span></label>
               <input type="text" name="prenom_contact2" required placeholder="ex. Jean"/>
             </div>
-            <div class="field">
+            <div class="field f-third">
               <label>Nom <span class="required">*</span></label>
               <input type="text" name="nom_contact2" required placeholder="ex. Tremblay"/>
             </div>
-            <div class="field">
+            <div class="field f-third">
               <label>Téléphone <span class="required">*</span></label>
               <input type="tel" name="telephone_contact2" required placeholder="514-000-0000"/>
             </div>
@@ -318,64 +323,78 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ── 3. ENFANTS ── -->
-    <div class="card form-section">
-      <div class="card-header">
-        <div class="card-icon">🎓</div>
-        <h2>Enfant(s) à inscrire</h2>
+  <!-- ── 3. ENFANTS ── -->
+  <div class="card form-section" style="overflow:hidden;">
+    <div class="hform">
+      <div class="hform-side">
+        <div class="hform-side-icon">🎓</div>
+        <div>
+          <h2>Enfant(s) à inscrire</h2>
+          <p>Ajoutez autant d'enfants que nécessaire.</p>
+        </div>
       </div>
-      <div class="card-body">
+      <div class="hform-body">
         <input type="hidden" name="nb_enfants" id="nb_enfants" value="1"/>
-
         <div id="enfants-container">
-          <!-- Enfant 1 -->
+
           <div class="enfant-block" id="enfant-1">
             <div class="enfant-title">
               <span class="enfant-badge">Enfant 1</span>
-              Informations de l'élève
+              <span class="enfant-label">Informations de l'élève</span>
             </div>
-            <div class="form-grid cols-3">
-              <div class="field">
+            <div class="frow">
+              <div class="field f-third">
                 <label>Prénom <span class="required">*</span></label>
                 <input type="text" name="prenom_enfant_1" required placeholder="ex. Lucas"/>
               </div>
-              <div class="field">
+              <div class="field f-third">
                 <label>Nom <span class="required">*</span></label>
                 <input type="text" name="nom_enfant_1" required placeholder="ex. Dupont"/>
               </div>
-              <div class="field">
+              <div class="field f-age">
                 <label>Âge <span class="required">*</span></label>
-                <input type="number" name="age_enfant_1" required min="3" max="18" placeholder="ex. 8"/>
+                <input type="number" name="age_enfant_1" required min="3" max="18" placeholder="8"/>
               </div>
-              <div class="field full">
+            </div>
+            <div class="frow">
+              <div class="field f-full">
                 <label>Allergies / informations médicales</label>
-                <textarea name="allergies_enfant_1" placeholder="Aucune allergie connue, ou précisez..."></textarea>
+                <textarea name="allergies_enfant_1" placeholder="Aucune allergie connue, ou précisez…"></textarea>
               </div>
             </div>
           </div>
-        </div>
 
+        </div>
         <button type="button" id="add-enfant-btn" onclick="ajouterEnfant()">
           ＋ Ajouter un autre enfant
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- ── reCAPTCHA + SUBMIT ── -->
-    <div class="card">
-      <div class="card-body">
-        <div class="g-recaptcha" data-sitekey="6LfogYssAAAAAMDZ3P-gTksNrWWvK6NRz7ytxjh9" style="margin-bottom:1rem;"></div>
+  <!-- ── reCAPTCHA + SUBMIT ── -->
+  <div class="card" style="overflow:hidden;">
+    <div class="hform">
+      <div class="hform-side" style="justify-content:center;align-items:center;text-align:center;">
+        <div>
+          <div style="font-size:1.6rem;margin-bottom:5px;">🔒</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:#fff;font-weight:600;">Validation</div>
+          <div style="font-size:0.7rem;color:rgba(255,255,255,0.38);margin-top:3px;">Sécurisé & confidentiel</div>
+        </div>
+      </div>
+      <div class="hform-body">
+        <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY" style="margin-bottom:0.8rem;"></div>
         <div class="form-footer">
           <p class="mandatory-note">Les champs marqués <span>*</span> sont obligatoires.</p>
-          <button type="submit" class="btn btn-primary">
-            ✦ Soumettre l'inscription
-          </button>
+          <button type="submit" class="btn btn-primary">✦ Soumettre l'inscription</button>
         </div>
       </div>
     </div>
+  </div>
 
-  </form>
+</form>
 </div>
 
 {% endblock %}
@@ -387,7 +406,6 @@
   function ajouterEnfant() {
     nbEnfants++;
     document.getElementById('nb_enfants').value = nbEnfants;
-
     const container = document.getElementById('enfants-container');
     const bloc = document.createElement('div');
     bloc.className = 'enfant-block';
@@ -395,33 +413,33 @@
     bloc.innerHTML = `
       <div class="enfant-title">
         <span class="enfant-badge">Enfant ${nbEnfants}</span>
-        Informations de l'élève
+        <span class="enfant-label">Informations de l'élève</span>
       </div>
       <button type="button" class="remove-btn" onclick="supprimerEnfant(${nbEnfants})">✕ Retirer</button>
-      <div class="form-grid cols-3">
-        <div class="field">
+      <div class="frow">
+        <div class="field f-third">
           <label>Prénom <span class="required">*</span></label>
           <input type="text" name="prenom_enfant_${nbEnfants}" required placeholder="ex. Emma"/>
         </div>
-        <div class="field">
+        <div class="field f-third">
           <label>Nom <span class="required">*</span></label>
           <input type="text" name="nom_enfant_${nbEnfants}" required placeholder="ex. Dupont"/>
         </div>
-        <div class="field">
+        <div class="field f-age">
           <label>Âge <span class="required">*</span></label>
-          <input type="number" name="age_enfant_${nbEnfants}" required min="3" max="18" placeholder="ex. 8"/>
+          <input type="number" name="age_enfant_${nbEnfants}" required min="3" max="18" placeholder="8"/>
         </div>
-        <div class="field full">
+      </div>
+      <div class="frow">
+        <div class="field f-full">
           <label>Allergies / informations médicales</label>
-          <textarea name="allergies_enfant_${nbEnfants}" placeholder="Aucune allergie connue, ou précisez..."></textarea>
+          <textarea name="allergies_enfant_${nbEnfants}" placeholder="Aucune allergie connue, ou précisez…"></textarea>
         </div>
       </div>
     `;
     container.appendChild(bloc);
-
-    // Animate in
     bloc.style.opacity = '0';
-    bloc.style.transform = 'translateY(12px)';
+    bloc.style.transform = 'translateY(10px)';
     requestAnimationFrame(() => {
       bloc.style.transition = 'opacity 0.3s, transform 0.3s';
       bloc.style.opacity = '1';
@@ -434,71 +452,12 @@
     if (bloc) {
       bloc.style.transition = 'opacity 0.2s';
       bloc.style.opacity = '0';
-      setTimeout(() => { bloc.remove(); nbEnfants--; document.getElementById('nb_enfants').value = nbEnfants; }, 220);
+      setTimeout(() => {
+        bloc.remove();
+        nbEnfants--;
+        document.getElementById('nb_enfants').value = nbEnfants;
+      }, 220);
     }
   }
 </script>
 {% endblock %}
-l>
-            <input type="text" class="form-control" id="prenom_tuteur" name="prenom_tuteur" placeholder="Prénom du tuteur" required>
-        </div>
-
-        <div class="form-group">
-            <label for="email_tuteur">Email du tuteur</label>
-            <input type="email" class="form-control" id="email_tuteur" name="email_tuteur" placeholder="Email du tuteur" required>
-        </div>
-
-        <div class="form-group">
-            <label for="tel_tuteur">Numéro de téléphone</label>
-            <input type="tel" class="form-control" id="tel_tuteur" name="tel_tuteur" placeholder="Téléphone du tuteur" required>
-        </div>
-
-        <div class="form-group">
-            <label for="adresse_tuteur">Adresse</label>
-            <input type="text" class="form-control" id="adresse_tuteur" name="adresse_tuteur" placeholder="Adresse du tuteur" required>
-        </div>
-
-        <div class="form-group">
-            <label for="ville_tuteur">Ville</label>
-            <select class="form-control" id="ville_tuteur" name="ville_tuteur" required>
-                <option value="">-- Choisir une ville --</option>
-                <option value="Sainte-Julie">Sainte-Julie</option>
-                <option value="Saint-Amable">Saint-Amable</option>
-                <option value="Saint-Bruno">Saint-Bruno</option>
-                <option value="Beloeil">Beloeil</option>
-                <option value="Mont-Saint-Hilaire">Mont-Saint-Hilaire</option>
-                <option value="McMasterville">McMasterville</option>
-                <option value="Varennes">Varennes</option>
-                <option value="Contrecoeur">Contrecoeur</option>
-                <option value="Saint-Mathieu-de-Beloeil">Saint-Mathieu-de-Beloeil</option>
-                <option value="Boucherville">Boucherville</option>
-            </select>
-        </div>
-
-        <!-- Nombre d'enfants -->
-        <div class="form-group">
-            <label>Nombre d'enfants à inscrire</label>
-            <select id="nb_enfants" name="nb_enfants" onchange="genererFormulaires()">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-            </select>
-        </div>
-
-        <!-- Champ caché pour Flask -->
-        <input type="hidden" name="nb_enfants" id="nb_enfants_hidden">
-
-        <!-- Zone où les formulaires enfants seront générés -->
-        <div id="formulaires_enfants"></div>
-
-        <br>
-        <!-- reCAPTCHA v2 -->
-        <div class="g-recaptcha" data-sitekey="6LfogYssAAAAAMDZ3P-gTksNrWWvK6NRz7ytxjh9"></div>
-        <br>
-
-        <button type="submit">Envoyer l'inscription</button>
-    </form>
-</div>
-</body>
-</html>
